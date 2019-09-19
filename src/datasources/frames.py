@@ -14,6 +14,7 @@ import numpy as np
 import tensorflow as tf
 
 from core import BaseDataSource
+from datasources import haar_cascade
 
 
 class FramesSource(BaseDataSource):
@@ -40,7 +41,13 @@ class FramesSource(BaseDataSource):
         self._indices = []
         self._frames = {}
         self._open = True
+        # self.face_cascade = haar_cascade.HaarCascade("/home/kayadev-gpu-2/GazeML/haarcascade_frontalface_alt.xml", \
+        #                                 "/home/kayadev-gpu-2/GazeML/haarcascade_profileface.xml")
+        self.face_cascade = cv.CascadeClassifier('/home/kayadev-gpu-2/GazeML/haarcascade_profileface.xml')
 
+        modelFile = "/home/kayadev-gpu-2/GazeML/res10_300x300_ssd_iter_140000_fp16.caffemodel"
+        configFile = "/home/kayadev-gpu-2/GazeML/deploy.prototxt"
+        self.net = cv.dnn.readNetFromCaffe(configFile, modelFile)
         # Call parent class constructor
         super().__init__(tensorflow_session, batch_size=batch_size, num_threads=1,
                          fread_queue_capacity=batch_size, preprocess_queue_capacity=batch_size,
@@ -130,7 +137,50 @@ class FramesSource(BaseDataSource):
         eye = np.expand_dims(eye, -1 if self.data_format == 'NHWC' else 0)
         entry['eye'] = eye
         return entry
+    
+    # Video version
+    '''
+    def detect_faces(self, frame):
+        """Detect all faces in a frame."""
+        frame_index = frame['frame_index']
+        previous_index = self._indices[self._indices.index(frame_index) - 1]
+        previous_frame = self._frames[previous_index]
+        # if ('last_face_detect_index' not in previous_frame or
+        #         frame['frame_index'] - previous_frame['last_face_detect_index'] > 59):
+            # print("\t---------If part of detect faces--------")
+        # detector = get_face_detector()
+        # if detector.__class__.__name__ == 'CascadeClassifier':
+        #     detections = detector.detectMultiScale(frame['grey'])
+        # else:
+        #     detections = detector(cv.resize(frame['grey'], (0, 0), fx=0.5, fy=0.5), 0)
+        detections = self.face_cascade.detectMultiScale(frame['grey'], scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
+        faces = []
+        for d in detections:
+            try:
+                l, t, r, b = d.rect.left(), d.rect.top(), d.rect.right(), d.rect.bottom()
+                l *= 2
+                t *= 2
+                r *= 2
+                b *= 2
+                w, h = r - l, b - t
+            except AttributeError:  # Using OpenCV LBP detector on CPU
+                l, t, w, h = d
+            faces.append((l, t, w, h))
+        faces.sort(key=lambda bbox: bbox[0])
+        frame['faces'] = faces
+        frame['last_face_detect_index'] = frame['frame_index']
 
+        # Clear previous known landmarks. This is to disable smoothing when new face detect
+        # occurs. This allows for recovery of drifted detections.
+        # previous_frame['landmarks'] = []
+        # else:
+        #     print("\t--------Else of detect_faces---------")
+        #     frame['faces'] = previous_frame['faces']
+        #     frame['last_face_detect_index'] = previous_frame['last_face_detect_index']
+    
+    '''
+
+    # Webcam Version
     def detect_faces(self, frame):
         """Detect all faces in a frame."""
         frame_index = frame['frame_index']
@@ -165,6 +215,7 @@ class FramesSource(BaseDataSource):
         else:
             frame['faces'] = previous_frame['faces']
             frame['last_face_detect_index'] = previous_frame['last_face_detect_index']
+    
 
     def detect_landmarks(self, frame):
         """Detect 5-point facial landmarks for faces in frame."""
@@ -278,6 +329,9 @@ class FramesSource(BaseDataSource):
                 inv_transform_mat = (inv_translate_mat * inv_rotate_mat * inv_scale_mat *
                                      inv_centre_mat)
                 eye_image = cv.warpAffine(frame['grey'], transform_mat[:2, :], (ow, oh))
+
+
+
                 if is_left:
                     eye_image = np.fliplr(eye_image)
                 eyes.append({

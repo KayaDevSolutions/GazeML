@@ -3,7 +3,7 @@ import os
 import time
 
 import cv2 as cv
-
+import numpy as np
 from .frames import FramesSource
 
 
@@ -13,10 +13,10 @@ class Video(FramesSource):
     def __init__(self, video_path, **kwargs):
         """Create queues and threads to read and preprocess data."""
         self._short_name = 'Video'
-
+        path = "/home/kayadev-gpu-2/Downloads/SampleVideo2.mp4"
         assert os.path.isfile(video_path)
         self._video_path = video_path
-        self._capture = cv.VideoCapture(video_path)
+        self._capture = cv.VideoCapture(self._video_path)
 
         # Call parent class constructor
         super().__init__(staging=False, **kwargs)
@@ -24,14 +24,21 @@ class Video(FramesSource):
     def frame_generator(self):
         """Read frame from webcam."""
         last_frame = None
+        frame_rate = 5
+        prev = 0 
         while True:
-            ret, frame = self._capture.read()
-            if ret:
-                yield frame
-                last_frame = frame
-            else:
-                yield last_frame
-                break
+            time_elapsed = time.time() - prev
+            if time_elapsed > 1./frame_rate:
+                prev = time.time()
+                ret, frame = self._capture.read()
+                frame = np.fliplr(frame)
+                frame = cv.add(frame,np.array([35.0]))
+                if ret:
+                    yield frame
+                    last_frame = frame
+                else:
+                    yield last_frame
+                    break
 
     def frame_read_job(self):
         """Read frame from video (without skipping)."""

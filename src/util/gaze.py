@@ -2,7 +2,7 @@
 import cv2 as cv
 import numpy as np
 import tensorflow as tf
-
+import math
 
 def pitchyaw_to_vector(pitchyaws):
     r"""Convert given yaw (:math:`\theta`) and pitch (:math:`\phi`) angles to unit gaze vectors.
@@ -106,7 +106,28 @@ def draw_gaze(image_in, eye_pos, pitchyaw, length=40.0, thickness=2, color=(0, 0
         image_out = cv.cvtColor(image_out, cv.COLOR_GRAY2BGR)
     dx = -length * np.sin(pitchyaw[1])
     dy = -length * np.sin(pitchyaw[0])
+    
+    #Draws Gaze Line
     cv.arrowedLine(image_out, tuple(np.round(eye_pos).astype(np.int32)),
                    tuple(np.round([eye_pos[0] + dx, eye_pos[1] + dy]).astype(int)), color,
                    thickness, cv.LINE_AA, tipLength=0.2)
-    return image_out
+
+    temp_1 =  dx - eye_pos[0]
+    temp_2 = eye_pos[1] - dy
+
+    line_length = math.sqrt(dx*dx + dy*dy)
+
+    # print("\n\t\t\t LINE LENGTH FOR EYE: ", line_length)
+    # print("\t\t\t Eye Position: ", eye_pos)
+
+    # cv.putText(image_out, str(line_length), (np.round(eye_pos[0]).astype(np.int32), np.round(eye_pos[1] - 40).astype(np.int32)),
+    #                             fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.8,
+    #                             color=(0, 0, 0), thickness=1, lineType=cv.LINE_AA)
+
+    # print("dx: ", dx)
+    # print("dy: ", dy)
+    # print("\n\t\tFrom eye 1 centre: ", temp_1)
+    # print("\t\tFrom eye 2 centre: ", temp_2)
+
+
+    return image_out, line_length

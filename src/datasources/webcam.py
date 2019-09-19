@@ -26,3 +26,4 @@ class Webcam(FramesSource):
             ret, bgr = self._capture.read()
             if ret:
                 yield bgr
+
