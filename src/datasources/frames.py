@@ -140,19 +140,13 @@ class FramesSource(BaseDataSource):
     
     # Video version
     '''
+    
     def detect_faces(self, frame):
         """Detect all faces in a frame."""
         frame_index = frame['frame_index']
         previous_index = self._indices[self._indices.index(frame_index) - 1]
         previous_frame = self._frames[previous_index]
-        # if ('last_face_detect_index' not in previous_frame or
-        #         frame['frame_index'] - previous_frame['last_face_detect_index'] > 59):
-            # print("\t---------If part of detect faces--------")
-        # detector = get_face_detector()
-        # if detector.__class__.__name__ == 'CascadeClassifier':
-        #     detections = detector.detectMultiScale(frame['grey'])
-        # else:
-        #     detections = detector(cv.resize(frame['grey'], (0, 0), fx=0.5, fy=0.5), 0)
+        
         detections = self.face_cascade.detectMultiScale(frame['grey'], scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
         faces = []
         for d in detections:
@@ -168,15 +162,8 @@ class FramesSource(BaseDataSource):
             faces.append((l, t, w, h))
         faces.sort(key=lambda bbox: bbox[0])
         frame['faces'] = faces
+        
         frame['last_face_detect_index'] = frame['frame_index']
-
-        # Clear previous known landmarks. This is to disable smoothing when new face detect
-        # occurs. This allows for recovery of drifted detections.
-        # previous_frame['landmarks'] = []
-        # else:
-        #     print("\t--------Else of detect_faces---------")
-        #     frame['faces'] = previous_frame['faces']
-        #     frame['last_face_detect_index'] = previous_frame['last_face_detect_index']
     
     '''
 
@@ -204,7 +191,8 @@ class FramesSource(BaseDataSource):
                     w, h = r - l, b - t
                 except AttributeError:  # Using OpenCV LBP detector on CPU
                     l, t, w, h = d
-                faces.append((l, t, w, h))
+                # faces.append((l, t, w, h))
+                faces.append((l, t, r, b))
             faces.sort(key=lambda bbox: bbox[0])
             frame['faces'] = faces
             frame['last_face_detect_index'] = frame['frame_index']
@@ -215,8 +203,9 @@ class FramesSource(BaseDataSource):
         else:
             frame['faces'] = previous_frame['faces']
             frame['last_face_detect_index'] = previous_frame['last_face_detect_index']
-    
 
+    
+    
     def detect_landmarks(self, frame):
         """Detect 5-point facial landmarks for faces in frame."""
         predictor = get_landmarks_predictor()

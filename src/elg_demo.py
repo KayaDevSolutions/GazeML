@@ -5,7 +5,7 @@ import os
 import queue
 import threading
 import time
-
+from gazedb import GazeDB
 import coloredlogs
 import cv2 as cv
 import numpy as np
@@ -17,7 +17,8 @@ import util.gaze
 from keras import backend as K
 
 if __name__ == '__main__':
-
+    # Initialise the obj
+    database = GazeDB()
     # Set global log level
     parser = argparse.ArgumentParser(description='Demonstration of landmarks localization.')
     parser.add_argument('-v', type=str, help='logging level', default='info',
@@ -175,7 +176,7 @@ if __name__ == '__main__':
                 bgr = None
 
                 line_lengths = []
-                look_flag = True
+                look_flag = False
 
                 for j in range(batch_size):
 
@@ -363,16 +364,20 @@ if __name__ == '__main__':
                             print("\n\n\t\t Line Lengths: ", line_lengths)
                             print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
                             for line_length in line_lengths:
-                                if line_length > 50:
-                                    look_flag = False
+                                if line_length < 50:
+                                    look_flag = True
                                                         
                         if look_flag and line_lengths:
                             text_look = "Looking"
                             print("\t LOOKING")
+                            rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
+                            # database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag)
                            
                         else:
                             text_look = "Not Looking"
                             print("\t Not Looking")
+                            rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
+                            # database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag)
 
                         cv.putText(bgr, text_look, (np.round(face[0] + 5).astype(np.int32), np.round(face[1] - 10).astype(np.int32)),
                                 fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.8,
