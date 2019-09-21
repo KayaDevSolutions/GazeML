@@ -9,7 +9,8 @@ from timeit import default_timer as timer
 import time
 import sqlalchemy as db
 import psycopg2
-from datetime import datetime
+from datetime import datetime, timedelta
+import base64
 
 class GazeDB():
     engine = db.create_engine('postgresql://postgres:password@localhost:5432/TitanLog')
@@ -30,9 +31,16 @@ class GazeDB():
             print("Exception in initiating database ", e)
 
     def FaceAlign(self, img, bboxs):
+        facenetbbox = []
+        
+        # print("BBoxs: ", bboxs)
+        # for box in bboxs:
+        #     temp = (box[0], box[1], box[0]+box[2], box[1]+box[3])
+        #     facenetbbox.append(temp)
+        # print("Facenetbbox: ", facenetbbox)
         margin = 10
         try:
-            print("\t Length of bboxs: ", len(bboxs))
+            # print("\t Length of bboxs: ", len(bboxs))
             bb = np.zeros(4, dtype=np.int32)
             faces = []
             img_size = np.asarray(img.shape)[0:2]
@@ -40,13 +48,13 @@ class GazeDB():
 
                 bb[0] = np.maximum(bboxs[i-1][0] - margin / 2, 0)
                 bb[1] = np.maximum(bboxs[i-1][1] - margin / 2, 0)
-                bb[2] = np.minimum(bboxs[i-1][2] + margin / 2, img_size[1])
-                bb[3] = np.minimum(bboxs[i-1][3] + margin/ 2, img_size[0])
-                print("Cropping Coordinates: ", bb)
+                bb[2] = np.minimum(bboxs[i-1][2] + bboxs[i-1][0] + margin / 2, img_size[1])
+                bb[3] = np.minimum(bboxs[i-1][3] + bboxs[i-1][1] + margin/ 2, img_size[0])
+                # print("Cropping Coordinates: ", bb)
 
                 if(bb[0] >= 0 and bb[1] >= 0 and bb[2] <= img_size[1] and bb[3] <= img_size[0]):
                     cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
-                    print("Cropped in face align", cropped, "\n {}".format(cropped.shape))
+                    # print("Cropped in face align", cropped, "\n {}".format(cropped.shape))
                     faces.append(cropped)
         except Exception as e:
             print("\t FaceAlign Exception: ", e)
@@ -64,9 +72,12 @@ class GazeDB():
     def GetEmbedding(self, img):
         embeddings = np.zeros((1, 128))
         with self.graph.as_default():
-            print("Image shape: ", type((img)[0,:]), "\n", img, "\n\n", img[0,:])
-            embeddings = self.model.predict(img)[0,:]
-        return embeddings.reshape(1, -1)
+            # print("Image shape: ", type((img)[0,:]), "\nImage: ", img, "\n\nImage[0,:]", img[0,:])
+            if(img.any()):
+                resized = cv2.resize(img, (160,160))
+                resized = np.expand_dims(resized, axis=0)
+                embeddings = self.model.predict(resized)[0,:]
+        return embeddings.reshape(1, -1)[0]
 
     def Distanceforfacenet(self,embedded_1, embedded_2):
             euclidean_distance = embedded_1 - embedded_2
@@ -74,59 +85,77 @@ class GazeDB():
             euclidean_distance = np.sqrt(euclidean_distance)
             return euclidean_distance
 
-    def MarkingProcess(self, img, bboxs, lookingflag):
+    def MarkingProcess(self, img, bboxs, lookingflag, frameindex):
+        inthelist = False
         croppedfaces = self.FaceAlign(img, bboxs)
-        print("\t Length of cropped faces: ", len(croppedfaces))
+        lookingtime = frameindex / 30
+        lookingtime = timedelta(seconds=lookingtime)
+        # print("\t Length of cropped faces: ", croppedfaces[0].shape,"\t Type: ", type(croppedfaces[0]),"\n Cropped face: ", croppedfaces[0])
+
         for face in croppedfaces:
+            face_base64 = base64.b64encode(np.asarray(face, order = 'C'))
+            # print("Face for base64: ", face_base64)
             frame_embedding = self.GetEmbedding(face)
+            # print("Frame_Embedding: ", frame_embedding)
             distance = self.Distanceforfacenet(frame_embedding, self.previousembedding)
-            print("\t Distance: ", distance)
-            if(len(self.EmbeddingArray) == 0):
-                # First frame insert
-                self.BreakPoint.append(int(0))
-                self.EmbeddingArray.append(frame_embedding)
-                self.EndTimer.append(datetime.now().time())
-                self.StartTimer.append(datetime.now().time())
-                if(lookingflag == True):
+            # print("\t Distance: ", distance)
+            if(len(self.EmbeddingArray) == 0 and lookingflag == True):
+                try:
+                    # First frame insert
+                    self.BreakPoint.append(int(0))
+                    self.EmbeddingArray.append(frame_embedding)
+                    self.EndTimer.append(lookingtime)
+                    self.StartTimer.append(lookingtime)
                     self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
-                                            ('{len(self.EmbeddingArray)}','{face}' , '{frame_embedding}', '{datetime.now().time()}', '{datetime.now().time()}', '1')""")
-
-
+                                                ('{len(self.EmbeddingArray)}','{face}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                    # print("\t Adding to the database")
+                except Exception as e:
+                    print("Exception in adding to db ", e)
+        
             if(distance > 10):
                 # Different face
                 for i in range (len(self.EmbeddingArray)):
                     distanceinarray = self.Distanceforfacenet(frame_embedding, self.EmbeddingArray[i])
                     if(distanceinarray < 8):
                         inthelist = True
+                        updateid = i
                 if(inthelist == True):
-                    self.EndTimer[i] = datetime.now().time()
-                    if(lookingflag == True):    
-                        self.connection.execute(f"""UPDATE datalog SET end_time = '{datetime.now().time()}' WHERE embedding_id = {i}""")
+                    if(lookingflag == True):
+                        # print("\t Updating the database")
+                        self.EndTimer[i] = lookingtime
+                        self.connection.execute(f"""UPDATE datalog SET end_time = '{lookingtime}' WHERE embedding_id = {updateid}""")
                         self.BreakPoint[i] += 1
                     else:
                         self.BreakPoint[i] -= 1
                 else:
-                    self.BreakPoint.append(int(0))
-                    self.EmbeddingArray.append(frame_embedding)
-                    self.EndTimer.append(datetime.now().time())
-                    self.StartTimer.append(datetime.now().time())
                     if(lookingflag == True):
-                        self.connection.execute(f"""INSERT INTO datalog(embedding_id, embedding, start_time, end_time) VALUES\
-                                            ('{len(self.EmbeddingArray)}', '{frame_embedding}', '{datetime.now().time()}', '{datetime.now().time()}')""")
+                        try:
+                            self.BreakPoint.append(int(0))
+                            self.EmbeddingArray.append(frame_embedding)
+                            self.EndTimer.append(lookingtime)
+                            self.StartTimer.append(lookingtime)
+                            self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
+                                                ('{len(self.EmbeddingArray)}','{face}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                            # print("\t Adding to the database")
+                        except Exception as e:
+                            print("Exception in adding to db ", e)
 
             elif(distance < 8):
                 # Same face
                 for i in range (len(self.EmbeddingArray)):
                     distanceinarray= self.Distanceforfacenet(frame_embedding, self.EmbeddingArray[i])
                     if(distanceinarray < 8):
-                        self.EndTimer[i] = datetime.now().time()
                         if(lookingflag == True):
+                            # print("\t Updating the database")
+                            self.EndTimer[i] = lookingtime
                             self.BreakPoint[i] += 1
-                            self.connection.execute(f"""UPDATE datalog SET end_time = '{datetime.now().time()}' WHERE embedding_id = {i}""")
+                            self.connection.execute(f"""UPDATE datalog SET end_time = '{lookingtime}' WHERE embedding_id = {i}""")
                         else:
                             self.BreakPoint[i] -= 1
 
 
-            print("\t Entries in dataframe: ", len(self.EmbeddingArray))
+            print("\t Entries in dataframe: ", len(self.EmbeddingArray), len(self.EmbeddingArray), len(self.EmbeddingArray))
             self.previousembedding = frame_embedding
-            print("Elasticity values: ", self.BreakPoint)
+            print("\t Elasticity values: ", self.BreakPoint)
+        
+            return

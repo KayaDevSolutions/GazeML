@@ -139,7 +139,7 @@ class FramesSource(BaseDataSource):
         return entry
     
     # Video version
-    '''
+    
     
     def detect_faces(self, frame):
         """Detect all faces in a frame."""
@@ -191,8 +191,8 @@ class FramesSource(BaseDataSource):
                     w, h = r - l, b - t
                 except AttributeError:  # Using OpenCV LBP detector on CPU
                     l, t, w, h = d
-                # faces.append((l, t, w, h))
-                faces.append((l, t, r, b))
+                faces.append((l, t, w, h))
+                # faces.append((l, t, r, b))
             faces.sort(key=lambda bbox: bbox[0])
             frame['faces'] = faces
             frame['last_face_detect_index'] = frame['frame_index']
@@ -203,7 +203,7 @@ class FramesSource(BaseDataSource):
         else:
             frame['faces'] = previous_frame['faces']
             frame['last_face_detect_index'] = previous_frame['last_face_detect_index']
-
+    '''
     
     
     def detect_landmarks(self, frame):

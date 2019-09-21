@@ -17,6 +17,7 @@ import util.gaze
 from keras import backend as K
 
 if __name__ == '__main__':
+
     # Initialise the obj
     database = GazeDB()
     # Set global log level
@@ -362,7 +363,8 @@ if __name__ == '__main__':
 
                         if j == 1:
                             print("\n\n\t\t Line Lengths: ", line_lengths)
-                            print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
+                            print("\t\t Frame Index: ", frame['frame_index'])
+                            # print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
                             for line_length in line_lengths:
                                 if line_length < 50:
                                     look_flag = True
@@ -371,13 +373,13 @@ if __name__ == '__main__':
                             text_look = "Looking"
                             print("\t LOOKING")
                             rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
-                            # database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag)
+                            database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'])
                            
                         else:
                             text_look = "Not Looking"
                             print("\t Not Looking")
                             rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
-                            # database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag)
+                            database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'])
 
                         cv.putText(bgr, text_look, (np.round(face[0] + 5).astype(np.int32), np.round(face[1] - 10).astype(np.int32)),
                                 fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.8,

@@ -24,21 +24,17 @@ class Video(FramesSource):
     def frame_generator(self):
         """Read frame from webcam."""
         last_frame = None
-        frame_rate = 5
-        prev = 0 
+
         while True:
-            time_elapsed = time.time() - prev
-            if time_elapsed > 1./frame_rate:
-                prev = time.time()
-                ret, frame = self._capture.read()
-                frame = np.fliplr(frame)
-                frame = cv.add(frame,np.array([35.0]))
-                if ret:
-                    yield frame
-                    last_frame = frame
-                else:
-                    yield last_frame
-                    break
+            ret, frame = self._capture.read()
+            frame = np.fliplr(frame)
+            frame = cv.add(frame,np.array([35.0]))
+            if ret:
+                yield frame
+                last_frame = frame
+            else:
+                yield last_frame
+                break
 
     def frame_read_job(self):
         """Read frame from video (without skipping)."""
