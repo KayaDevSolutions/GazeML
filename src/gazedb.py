@@ -93,7 +93,8 @@ class GazeDB():
         # print("\t Length of cropped faces: ", croppedfaces[0].shape,"\t Type: ", type(croppedfaces[0]),"\n Cropped face: ", croppedfaces[0])
 
         for face in croppedfaces:
-            face_base64 = base64.b64encode(np.asarray(face, order = 'C'))
+            _, encoded_image = cv2.imencode('.jpg', face)
+            
             # print("Face for base64: ", face_base64)
             frame_embedding = self.GetEmbedding(face)
             # print("Frame_Embedding: ", frame_embedding)
@@ -107,7 +108,7 @@ class GazeDB():
                     self.EndTimer.append(lookingtime)
                     self.StartTimer.append(lookingtime)
                     self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
-                                                ('{len(self.EmbeddingArray)}','{face}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                                                ('{len(self.EmbeddingArray)}','{encoded_image}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
                     # print("\t Adding to the database")
                 except Exception as e:
                     print("Exception in adding to db ", e)
@@ -135,7 +136,7 @@ class GazeDB():
                             self.EndTimer.append(lookingtime)
                             self.StartTimer.append(lookingtime)
                             self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
-                                                ('{len(self.EmbeddingArray)}','{face}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                                                ('{len(self.EmbeddingArray)}','{encoded_image}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
                             # print("\t Adding to the database")
                         except Exception as e:
                             print("Exception in adding to db ", e)
