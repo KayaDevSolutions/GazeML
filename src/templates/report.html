@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="../static/fontawesome-free-5.10.2-web/css/all.css" rel="stylesheet">
+        <link href="../static/css/template.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+        <link rel="icon" type="image/ico" href="../static/images/EYE.jpg" >
+        <title>Eye Titan Report</title>
+
+    <script>
+    
+    fetch('http://localhost:5000/getdata')
+      .then(
+        function(response) {
+          if (response.status !== 200) {
+            console.log('Looks like there was a problem. Status Code: ' +
+              response.status);
+            return;
+          }
+          response.json().then(function(data) {
+            let report = JSON.parse(data);
+            console.log("Report:", report)
+            var dataAppend = "<tr>";
+            var details = document.getElementById('details')
+
+            Object.size = function(obj) {
+                var size = 0, key;
+                for (key in obj) {
+                    if (obj.hasOwnProperty(key)) size++;
+                }
+                return size;
+            };
+            var filename = document.getElementById("upload-photo").value			
+				    console.log("Input Video: ", filename)
+            var size = Object.size(report.face);
+            console.log(size)
+            for(let i = 0; i < size; i++){
+              console.log(report)
+              dataAppend +=  "<td>" +"<i class='fas fa-user'></i>" +"</td>" + "<td>" + report.duration[i] + "</td>" +  "<td>" + report.start_time[i] + "</td>" +  "<td>" + report.cam_id[i] + "</td>" +"</tr>" + "<tr>"
+              // dataAppend +=  "<td>" + "<img src=\"data:image/jpeg;base64," + report.face[i]+ '"' +  "/>" +"</td>"  +  "<td>" + report.start_time[i] + "</td>" +  "<td>" + report.cam_id[i] + "</td>" +"</tr>" + "<tr>"
+              console.log(dataAppend)
+            }
+            details.innerHTML = dataAppend;
+          });
+        }
+      )
+      .catch(function(err) {
+        console.log('Fetch Error :-S', err);
+      });
+
+    </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="sidebar">
+                <div class="nav-links">
+                  <img src="../static/eyelogo.png" alt="Titan Eye"  width="100">
+                  <ul>
+                    <li>
+                      <a href="/">
+                        <i class="fab fa-dashcube"></i>
+                        Dashboard
+                      </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-cog"></i>
+                          Settings
+                        </a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="image">
+                  <img src="../static/titanlogopoc.png" alt="Titan"  width="150">
+                </div>
+              </div>
+            <div class="report-body">
+
+                <div class="video-actions">
+
+                    <form method="post" action="/" enctype="multipart/form-data" class="form-display">
+              
+              
+                      <img src="../static/videologotitan.png" alt="Camera">
+                      <input type="file" name="file" id="upload-photo" required class="hidden" onchange="listenForInput()"/>
+                      <input type="submit" value="Report Generated!" class="video-uploaded" id="get-report" >
+
+                    </form>
+              
+              
+                  </div>
+              <table id="faces">
+                  <thead>
+                      <tr>
+                          <th> Face </th>
+                          <th> Duration </th>
+                          <th> Timestamp </th>
+                          <!-- <th> End Time </th> -->
+                          <th> Cam ID </th>
+                      </tr>
+                  </theaad>
+                  <tbody id="details">
+                  </tbody>
+              </table>
+            </div>
+        </div>
+
+        
+    </body>
+</html>

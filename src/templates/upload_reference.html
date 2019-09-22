@@ -1,0 +1,81 @@
+<!doctype html>
+<head>
+	<title>Eye Titan</title>
+	<link rel="stylesheet" href="../static/css/template.css">
+	<link rel="icon" type="image/ico" href="../static/images/EYE.jpg" >
+	<link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+
+
+	<style>
+		
+		.progress { position:relative; width:400px; border: 1px solid #ddd; padding: 1px; border-radius: 3px; }
+		.bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
+		.percent { position:absolute; display:inline-block; top:3px; left:48%; }
+	</style>
+</head>
+<body>
+
+	<div class="container">
+		<div class="sidebar">
+			<div class="nav-links">
+				<img src="../static/eyelogo.png" alt="Titan Eye"  width="100">
+				<ul>
+					<li>
+						<a href="/"> Dashboard </a>
+					</li>
+				</ul>
+			</div>
+			<div class="image">
+				<img src="../static/titanlogopoc.png" alt="Titan"  width="150">
+			</div>
+		</div>
+		
+		<div class="video-actions">
+
+			<form method="post" action="/" enctype="multipart/form-data" class="form-display">
+
+
+				<img src="../static/videologotitan.png" alt="Camera">
+				<label for="upload-photo" id="select-file-button" >
+					+
+					Add a New Video</label>
+				<input type="file" name="file" id="upload-photo" required class="hidden" onchange="listenForInput()"/>
+				<input type="submit" value="Get Report" class="get-report" id="get-report" onclick="showSpinner()">
+				<!-- <input type="submit" value="Get Report" class="get-report" id="get-report" onclick="var temp = showSpinner(); runscript(); return temp;"> -->
+				<!-- <input type="submit" value="Get Report" class="get-report" id="get-report" onclick=" showSpinner(); runscript(); "> -->
+				<p id="default-text"> You can add a new video by clicking on the button.</p>
+				<img src="../static/spinner.gif" alt="Spinner" id="spinner">
+			</form>
+
+
+		</div>
+	</div>
+
+	
+	<script>
+
+		function showSpinner(){
+			var getSpinnerId = document.getElementById("spinner");
+			spinner.classList.add("display-visible")
+		}
+		// function runscript(){
+		// 	window.open("test.py")
+
+
+		// 	// # update the script you want to run :-
+
+		// }
+		function listenForInput(e){
+			var inputVideo = document.getElementById("upload-photo").value.length
+			if(inputVideo){
+				var addClass = document.getElementById("select-file-button");
+				var displayGetReportButton = document.getElementById("get-report");
+				var removeDisplayText = document.getElementById("default-text");
+				addClass.classList.add("display-none");
+				displayGetReportButton.classList.add("display-visible");
+				removeDisplayText.classList.add("display-none");
+			}
+		}
+	</script>
+
+</body>

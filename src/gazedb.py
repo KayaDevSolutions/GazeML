@@ -24,7 +24,7 @@ class GazeDB():
             self.StartTimer = []
             self.EndTimer = []
             self.BreakPoint = []
-            self.BreakValue = 15
+            self.BreakValue = -300
             self.connection = self.engine.connect()
             print("DB Instance created")
         except Exception as e:
@@ -94,7 +94,6 @@ class GazeDB():
 
         for face in croppedfaces:
             _, encoded_image = cv2.imencode('.jpg', face)
-            
             # print("Face for base64: ", face_base64)
             frame_embedding = self.GetEmbedding(face)
             # print("Frame_Embedding: ", frame_embedding)
@@ -124,8 +123,13 @@ class GazeDB():
                     if(lookingflag == True):
                         # print("\t Updating the database")
                         self.EndTimer[i] = lookingtime
-                        self.connection.execute(f"""UPDATE datalog SET end_time = '{lookingtime}' WHERE embedding_id = {updateid}""")
-                        self.BreakPoint[i] += 1
+                        if(self.BreakPoint[i] < self.BreakValue):
+                            self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
+                                                ('{len(self.EmbeddingArray)}','{encoded_image}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                            self.BreakPoint[i] = 0
+                        else:
+                            self.connection.execute(f"""UPDATE datalog SET end_time = '{lookingtime}' WHERE embedding_id = {len(self.EmbeddingArray)}""")
+                            self.BreakPoint[i] += 1
                     else:
                         self.BreakPoint[i] -= 1
                 else:
@@ -149,8 +153,13 @@ class GazeDB():
                         if(lookingflag == True):
                             # print("\t Updating the database")
                             self.EndTimer[i] = lookingtime
-                            self.BreakPoint[i] += 1
-                            self.connection.execute(f"""UPDATE datalog SET end_time = '{lookingtime}' WHERE embedding_id = {i}""")
+                            if(self.BreakPoint[i] < self.BreakValue):
+                                self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
+                                                    ('{len(self.EmbeddingArray)}','{encoded_image}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                                self.BreakPoint[i] = 0
+                            else:
+                                self.connection.execute(f"""UPDATE datalog SET end_time = '{lookingtime}' WHERE embedding_id = {len(self.EmbeddingArray)}""")
+                                self.BreakPoint[i] += 1
                         else:
                             self.BreakPoint[i] -= 1
 

@@ -26,9 +26,12 @@ class Video(FramesSource):
         last_frame = None
 
         while True:
-            ret, frame = self._capture.read()
-            frame = np.fliplr(frame)
-            frame = cv.add(frame,np.array([35.0]))
+            try:
+                ret, frame = self._capture.read()
+                frame = np.fliplr(frame)
+                frame = cv.add(frame,np.array([35.0]))
+            except Exception as e:
+                break
             if ret:
                 yield frame
                 last_frame = frame
@@ -52,3 +55,4 @@ class Video(FramesSource):
 
         print('Video "%s" closed.' % self._video_path)
         self._open = False
+        return
