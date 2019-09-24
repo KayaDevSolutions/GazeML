@@ -25,6 +25,7 @@ class GazeDB():
             self.EndTimer = []
             self.BreakPoint = []
             self.BreakValue = -300
+            self.imgnumber = 0
             self.connection = self.engine.connect()
             print("DB Instance created")
         except Exception as e:
@@ -54,8 +55,10 @@ class GazeDB():
 
                 if(bb[0] >= 0 and bb[1] >= 0 and bb[2] <= img_size[1] and bb[3] <= img_size[0]):
                     cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
+                    cv2.imwrite("/home/kayadev-gpu-2/Desktop/OutputImages/Face-{}.jpg".format(self.imgnumber), cropped)
                     # print("Cropped in face align", cropped, "\n {}".format(cropped.shape))
                     faces.append(cropped)
+                    self.imgnumber += 1
         except Exception as e:
             print("\t FaceAlign Exception: ", e)
         return faces

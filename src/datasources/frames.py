@@ -43,7 +43,7 @@ class FramesSource(BaseDataSource):
         self._open = True
         # self.face_cascade = haar_cascade.HaarCascade("/home/kayadev-gpu-2/GazeML/haarcascade_frontalface_alt.xml", \
         #                                 "/home/kayadev-gpu-2/GazeML/haarcascade_profileface.xml")
-        self.face_cascade = cv.CascadeClassifier('/home/kayadev-gpu-2/GazeML/haarcascade_profileface.xml')
+        self.face_cascade = cv.CascadeClassifier('/home/kayadev-gpu-2/gazeml_current/GazeML/haarcascade_frontalface_alt.xml')
 
         modelFile = "/home/kayadev-gpu-2/GazeML/res10_300x300_ssd_iter_140000_fp16.caffemodel"
         configFile = "/home/kayadev-gpu-2/GazeML/deploy.prototxt"
@@ -164,8 +164,8 @@ class FramesSource(BaseDataSource):
         frame['faces'] = faces
         
         frame['last_face_detect_index'] = frame['frame_index']
-    
     '''
+    
 
     # Webcam Version
     def detect_faces(self, frame):
@@ -203,8 +203,8 @@ class FramesSource(BaseDataSource):
         else:
             frame['faces'] = previous_frame['faces']
             frame['last_face_detect_index'] = previous_frame['last_face_detect_index']
-    '''
     
+    '''
     
     def detect_landmarks(self, frame):
         """Detect 5-point facial landmarks for faces in frame."""
@@ -226,6 +226,8 @@ class FramesSource(BaseDataSource):
     _smoothing_window_size = 10
     _smoothing_coefficient_decay = 0.5
     _smoothing_coefficients = None
+
+    
 
     def calculate_smoothed_landmarks(self, frame):
         """If there are previous landmark detections, try to smooth current prediction."""

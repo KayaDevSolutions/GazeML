@@ -232,15 +232,23 @@ class Runfile():
                                 color=(0, 255, 255), markerType=cv.MARKER_CROSS, markerSize=4,
                                 thickness=1, line_type=cv.LINE_AA,
                             )
-                        face_index = int(eye_index / 2)
-                        eh, ew, _ = eye_image_raw.shape
-                        v0 = face_index * 2 * eh
-                        v1 = v0 + eh
-                        v2 = v1 + eh
-                        u0 = 0 if eye_side == 'left' else ew
-                        u1 = u0 + ew
-                        bgr[v0:v1, u0:u1] = eye_image_raw
-                        bgr[v1:v2, u0:u1] = eye_image_annotated
+                        try:
+                            face_index = int(eye_index / 2)
+                            eh, ew, _ = eye_image_raw.shape
+                            v0 = face_index * 2 * eh
+                            v1 = v0 + eh
+                            v2 = v1 + eh
+                            u0 = 0 if eye_side == 'left' else ew
+                            u1 = u0 + ew
+                            # print("eye_image_raw:", eye_image_raw)
+                            # print("eye_image_annotated", eye_image_annotated)
+                            # print("BGR: ", bgr)
+                            # print("v0: {}, v1: {}, v2: {}, u0: {}, u1: {}".format(v0, v1, v2, u0, u1))
+                            # bgr[v0:v1, u0:u1] = eye_image_raw
+                            # bgr[v1:v2, u0:u1] = eye_image_annotated
+                        except Exception as e:
+                            print("\t Exception on matching numpy shape. ", e)
+                            pass
 
                         # Visualize preprocessing results
                         frame_landmarks = (frame['smoothed_landmarks']
@@ -362,29 +370,39 @@ class Runfile():
                                     fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.79,
                                     color=(255, 255, 255), thickness=1, lineType=cv.LINE_AA)
 
-                            if j == 1:
-                                print("\n\n\t\t Line Lengths: ", line_lengths)
-                                print("\t\t Frame Index: ", frame['frame_index'])
-                                # print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
-                                for line_length in line_lengths:
-                                    if line_length < 50:
-                                        look_flag = True
+                            # if j % 2 == 1:
+                            
+                            print("\n\n\t\t Line Lengths: ", line_lengths)
+                            print("\t\t Frame Index: ", frame['frame_index'])
+                            print("Size of frame:", frame['bgr'].shape, frame['grey'].shape)
+                            # print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
+                            for line_length in line_lengths:
+                                if line_length < 50:
+                                    look_flag = True
                                                             
                             if look_flag and line_lengths:
                                 text_look = "Looking"
-                                print("\t LOOKING")
-                                rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
-                                database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'])
+                                print("\t LOOKING", fw, fh)
+                                print("Size of frame:", frame['bgr'].shape, frame['grey'].shape)
+                                cv.putText(bgr, "LOOKING", org=(2644, 70),
+                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
+                                    color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
+                                cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 225), 5)
+                                # cv.rectangle(bgr, (2639, 75), (2641, 77), (0, 0, 225), 2) 
+                                # cv.rectangle(bgr, (fw - 48, fh - 700), (fw - 43, fh - 695), (0, 0, 225), 2)
+                                # rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
+                                # database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'])
                             
                             else:
-                                text_look = "Not Looking"
+                                text_look = ""
                                 print("\t Not Looking")
-                                rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
-                                database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'])
+                                # rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
+                                # database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'])
 
-                            cv.putText(bgr, text_look, (np.round(face[0] + 5).astype(np.int32), np.round(face[1] - 10).astype(np.int32)),
-                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.8,
-                                    color=(0, 0, 255), thickness=1, lineType=cv.LINE_AA)     
+                            for face in frame['faces']:
+                                cv.putText(bgr, text_look, (np.round(face[0] + 5).astype(np.int32), np.round(face[1] - 10).astype(np.int32)),
+                                        fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.8,
+                                        color=(0, 0, 255), thickness=1, lineType=cv.LINE_AA)     
                             
                             if not args.headless:
                                 resized_img = cv.resize(bgr, (1280, 720))
@@ -446,6 +464,6 @@ class Runfile():
                 with video_out_done:
                     video_out_done.wait()
 
-# if __name__ == "__main__":
-#     run = Runfile("/home/kayadev-gpu-2/Desktop/SampleVideoCropped.mp4", "/home/kayadev-gpu-2/Desktop/SampleRecord.avi")
-    # run.__init__("/home/kayadev-gpu-2/Desktop/SampleVideoCropped.mp4", "/home/kayadev-gpu-2/Desktop/SampleRecord.avi")
+if __name__ == "__main__":
+    run = Runfile(from_video = "/home/kayadev-gpu-2/Desktop/TCenter.mp4", record_video = "/home/kayadev-gpu-2/Desktop/SampleRecord.avi")
+    run.__init__(from_video = "/home/kayadev-gpu-2/Desktop/TCenter.mp4", record_video = "/home/kayadev-gpu-2/Desktop/SampleRecord.avi")

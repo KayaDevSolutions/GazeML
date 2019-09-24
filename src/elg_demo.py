@@ -238,6 +238,7 @@ if __name__ == '__main__':
                     v2 = v1 + eh
                     u0 = 0 if eye_side == 'left' else ew
                     u1 = u0 + ew
+                    
                     bgr[v0:v1, u0:u1] = eye_image_raw
                     bgr[v1:v2, u0:u1] = eye_image_annotated
 
@@ -315,22 +316,22 @@ if __name__ == '__main__':
                     else:
                         gaze_history.clear()
 
-                    # if can_use_eyelid:
-                    #     cv.polylines(
-                    #         bgr, [np.round(eyelid_landmarks).astype(np.int32).reshape(-1, 1, 2)],
-                    #         isClosed=True, color=(255, 255, 0), thickness=1, lineType=cv.LINE_AA,
-                    #     )
+                    if can_use_eyelid:
+                        cv.polylines(
+                            bgr, [np.round(eyelid_landmarks).astype(np.int32).reshape(-1, 1, 2)],
+                            isClosed=True, color=(255, 255, 0), thickness=1, lineType=cv.LINE_AA,
+                        )
 
-                    # if can_use_iris:
-                    #     cv.polylines(
-                    #         bgr, [np.round(iris_landmarks).astype(np.int32).reshape(-1, 1, 2)],
-                    #         isClosed=True, color=(0, 255, 255), thickness=1, lineType=cv.LINE_AA,
-                    #     )
-                    #     cv.drawMarker(
-                    #         bgr, tuple(np.round(iris_centre).astype(np.int32)),
-                    #         color=(0, 255, 255), markerType=cv.MARKER_CROSS, markerSize=4,
-                    #         thickness=1, line_type=cv.LINE_AA,
-                    #     )
+                    if can_use_iris:
+                        cv.polylines(
+                            bgr, [np.round(iris_landmarks).astype(np.int32).reshape(-1, 1, 2)],
+                            isClosed=True, color=(0, 255, 255), thickness=1, lineType=cv.LINE_AA,
+                        )
+                        cv.drawMarker(
+                            bgr, tuple(np.round(iris_centre).astype(np.int32)),
+                            color=(0, 255, 255), markerType=cv.MARKER_CROSS, markerSize=4,
+                            thickness=1, line_type=cv.LINE_AA,
+                        )
 
                     dtime = 1e3*(time.time() - start_time)
                     if 'visualization' not in frame['time']:
