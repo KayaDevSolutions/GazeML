@@ -43,7 +43,9 @@ class FramesSource(BaseDataSource):
         self._open = True
         # self.face_cascade = haar_cascade.HaarCascade("/home/kayadev-gpu-2/GazeML/haarcascade_frontalface_alt.xml", \
         #                                 "/home/kayadev-gpu-2/GazeML/haarcascade_profileface.xml")
-        self.face_cascade = cv.CascadeClassifier('/home/kayadev-gpu-2/gazeml_current/GazeML/haarcascade_frontalface_alt.xml')
+        self.frontal_face_cascade = cv.CascadeClassifier('/home/kayadev-gpu-2/gazeml_current/GazeML/haarcascade_frontalface_alt.xml')
+
+        self.profile_face_cascade = cv.CascadeClassifier('/home/kayadev-gpu-2/gazeml_current/GazeML/haarcascade_profileface.xml')
 
         modelFile = "/home/kayadev-gpu-2/GazeML/res10_300x300_ssd_iter_140000_fp16.caffemodel"
         configFile = "/home/kayadev-gpu-2/GazeML/deploy.prototxt"
@@ -137,17 +139,117 @@ class FramesSource(BaseDataSource):
         eye = np.expand_dims(eye, -1 if self.data_format == 'NHWC' else 0)
         entry['eye'] = eye
         return entry
+
+    # Video version To be Updated
+    def detect_faces(self, frame):
+        """Detect all faces in a frame."""
+        frame_index = frame['frame_index']
+        previous_index = self._indices[self._indices.index(frame_index) - 1]
+        previous_frame = self._frames[previous_index]
+        faces = []
+        
+        # Frontal Faces
+        detections = self.frontal_face_cascade.detectMultiScale(frame['grey'], scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
+        for d in detections:
+            try:
+                l, t, r, b = d.rect.left(), d.rect.top(), d.rect.right(), d.rect.bottom()
+                l *= 2
+                t *= 2
+                r *= 2
+                b *= 2
+                w, h = r - l, b - t
+            except AttributeError:  # Using OpenCV LBP detector on CPU
+                l, t, w, h = d
+            for face in faces:
+                print("\t NOTHING!")
+            faces.append((l, t, w, h))
+        
+        # Left Profile Faces
+        detections = self.profile_face_cascade.detectMultiScale(frame['grey'], scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
+        for d in detections:
+            try:
+                l, t, r, b = d.rect.left(), d.rect.top(), d.rect.right(), d.rect.bottom()
+                l *= 2
+                t *= 2
+                r *= 2
+                b *= 2
+                w, h = r - l, b - t
+            except AttributeError:  # Using OpenCV LBP detector on CPU
+                l, t, w, h = d
+            for face in faces:
+                print("\t SOMETHING!")    
+            faces.append((l, t, w, h))
+
+        # # Right Profile Faces
+        # detections = self.profile_face_cascade.detectMultiScale(cv.flip(frame['grey'], 1), scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
+        # for d in detections:
+        #     try:
+        #         l, t, r, b = d.rect.left(), d.rect.top(), d.rect.right(), d.rect.bottom()
+        #         l *= 2
+        #         t *= 2
+        #         r *= 2
+        #         b *= 2
+        #         w, h = r - l, b - t
+        #     except AttributeError:  # Using OpenCV LBP detector on CPU
+        #         l, t, w, h = d
+        #     for face in faces:
+        #         print("\t SOMETHING!")    
+        #     faces.append((l, t, w, h))
+
+        # # Rotated Frontal Faces
+        # rows, cols = (frame['grey']).shape[:2]
+        # M = cv.getRotationMatrix2D((cols/2,rows/2), 30, 1) #30 degrees ccw rotation
+        # rotatedImg = cv.warpAffine(frame['grey'], M, (cols,rows))
+        # detections = self.frontal_face_cascade.detectMultiScale(rotatedImg, scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
+        # for d in detections:
+        #     try:
+        #         l, t, r, b = d.rect.left(), d.rect.top(), d.rect.right(), d.rect.bottom()
+        #         l *= 2
+        #         t *= 2
+        #         r *= 2
+        #         b *= 2
+        #         w, h = r - l, b - t
+        #     except AttributeError:  # Using OpenCV LBP detector on CPU
+        #         l, t, w, h = d
+        #     for face in faces:
+        #         print("\t NOTHING!")
+        #     faces.append((l, t, w, h))
+
+        # # Rotated Frontal Faces
+        # rows, cols = (frame['grey']).shape[:2]
+        # M = cv.getRotationMatrix2D((cols/2,rows/2), -30, 1) #30 degrees ccw rotation
+        # rotatedImg = cv.warpAffine(frame['grey'], M, (cols,rows))
+        # detections = self.frontal_face_cascade.detectMultiScale(frame['grey'], scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
+        # for d in detections:
+        #     try:
+        #         l, t, r, b = d.rect.left(), d.rect.top(), d.rect.right(), d.rect.bottom()
+        #         l *= 2
+        #         t *= 2
+        #         r *= 2
+        #         b *= 2
+        #         w, h = r - l, b - t
+        #     except AttributeError:  # Using OpenCV LBP detector on CPU
+        #         l, t, w, h = d
+        #     for face in faces:
+        #         print("\t NOTHING!")
+        #     faces.append((l, t, w, h))
+        
+
+        faces.sort(key=lambda bbox: bbox[0])
+        frame['faces'] = faces
+        
+        frame['last_face_detect_index'] = frame['frame_index']
+
+    '''
     
     # Video version
-    
-    
     def detect_faces(self, frame):
         """Detect all faces in a frame."""
         frame_index = frame['frame_index']
         previous_index = self._indices[self._indices.index(frame_index) - 1]
         previous_frame = self._frames[previous_index]
         
-        detections = self.face_cascade.detectMultiScale(frame['grey'], scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
+        detections = self.frontal_face_cascade.detectMultiScale(frame['grey'], scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
         faces = []
         for d in detections:
             try:
@@ -164,7 +266,6 @@ class FramesSource(BaseDataSource):
         frame['faces'] = faces
         
         frame['last_face_detect_index'] = frame['frame_index']
-    '''
     
 
     # Webcam Version

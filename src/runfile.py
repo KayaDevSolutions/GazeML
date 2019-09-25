@@ -259,6 +259,7 @@ class Runfile():
                             #     cv.drawMarker(bgr, tuple(np.round(landmark).astype(np.int32)),
                             #                   color=(0, 0, 255), markerType=cv.MARKER_STAR,
                             #                   markerSize=2, thickness=1, line_type=cv.LINE_AA)
+
                             cv.rectangle(
                                 bgr, tuple(np.round(face[:2]).astype(np.int32)),
                                 tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
@@ -373,8 +374,6 @@ class Runfile():
                             # if j % 2 == 1:
                             
                             print("\n\n\t\t Line Lengths: ", line_lengths)
-                            print("\t\t Frame Index: ", frame['frame_index'])
-                            print("Size of frame:", frame['bgr'].shape, frame['grey'].shape)
                             # print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
                             for line_length in line_lengths:
                                 if line_length < 50:
@@ -383,7 +382,12 @@ class Runfile():
                             if look_flag and line_lengths:
                                 text_look = "Looking"
                                 print("\t LOOKING", fw, fh)
-                                print("Size of frame:", frame['bgr'].shape, frame['grey'].shape)
+                                cv.rectangle(
+                                bgr, tuple(np.round(face[:2]).astype(np.int32)),
+                                tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
+                                color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,)
+                                                                                        
+                                cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 0), -1)
                                 cv.putText(bgr, "LOOKING", org=(2644, 70),
                                     fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
                                     color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)

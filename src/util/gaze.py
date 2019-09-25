@@ -114,7 +114,6 @@ def draw_gaze(image_in, eye_pos, pitchyaw, length=40.0, thickness=2, color=(0, 0
 
     temp_1 =  dx - eye_pos[0]
     temp_2 = eye_pos[1] - dy
-
     line_length = math.sqrt(dx*dx + dy*dy)
 
     # print("\n\t\t\t LINE LENGTH FOR EYE: ", line_length)

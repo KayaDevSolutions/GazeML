@@ -20,7 +20,7 @@ class OperationDatabase():
 
     def selectquery(self):
         table = self.connection.execute(f"""SELECT face, embedding_id, start_time, (end_time - start_time) as duration, cam_id FROM datalog WHERE (end_time - start_time) > '00:00:01'::time;""")
-        dfcount = 0    
+        dfcount = 0
         for row in table:
             row = list(row)
             self.Data.loc[dfcount] = row
