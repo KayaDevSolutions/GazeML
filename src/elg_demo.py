@@ -10,6 +10,9 @@ import coloredlogs
 import cv2 as cv
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.client import device_lib
+import keras
+from keras import backend as K
 
 from datasources import Video, Webcam
 from models import ELG
@@ -40,12 +43,13 @@ if __name__ == '__main__':
     )
 
     # Check if GPU is available
-    from tensorflow.python.client import device_lib
+    # from tensorflow.python.client import device_lib
     session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
     gpu_available = False
     try:
-        gpus = [d for d in device_lib.list_local_devices()
+        gpus = [d for d in K.tensorflow_backend._get_available_gpus()
                 if d.device_type == 'GPU']
+        print("\t\t GPUS:  [{}]".format(gpus))
         gpu_available = len(gpus) > 0
     except:
         pass
@@ -367,7 +371,7 @@ if __name__ == '__main__':
                             print("\t\t Frame Index: ", frame['frame_index'])
                             # print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
                             for line_length in line_lengths:
-                                if line_length < 50:
+                                if line_length < 40:
                                     look_flag = True
                                                         
                         if look_flag and line_lengths:
@@ -390,7 +394,8 @@ if __name__ == '__main__':
                             resized_img = cv.resize(bgr, (1280, 720))
                             cv.imshow('vis', resized_img)
                             video_recorder.write(resized_img)
-                            # cv.imshow('vis', bgr)
+                            # cv.imshow('vis', bgr) 1.14.0
+
                         last_frame_index = frame_index
 
                         # Record frame?

@@ -260,11 +260,28 @@ class Runfile():
                             #                   color=(0, 0, 255), markerType=cv.MARKER_STAR,
                             #                   markerSize=2, thickness=1, line_type=cv.LINE_AA)
 
-                            cv.rectangle(
-                                bgr, tuple(np.round(face[:2]).astype(np.int32)),
-                                tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
-                                color=(0, 255, 255), thickness=1, lineType=cv.LINE_AA,
-                            )
+                            # tuple(np.round(np.add(face[:2], face[2:])
+
+                            # print("Frame: {}, Face: {}".format(np.round(np.add(face[:2], face[2:])), bgr.shape[0]))
+                            if(np.round(face[:2][0]) > 540):
+                                cv.rectangle(
+                                    bgr, tuple(np.round(face[:2]).astype(np.int32)),
+                                    tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
+                                    color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,
+                                )
+                                cv.putText(bgr, "RESTRICTED", org=(50, 10),
+                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
+                                    color=(0, 0, 255), thickness=3, lineType=cv.LINE_AA)
+                                
+                            else:
+                                cv.rectangle(
+                                    bgr, tuple(np.round(face[:2]).astype(np.int32)),
+                                    tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
+                                    color=(0, 255, 0), thickness=2, lineType=cv.LINE_AA,
+                                )
+                                cv.putText(bgr, "ALLOWED", org=(50, 10),
+                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
+                                    color=(0, 255, 0), thickness=3, lineType=cv.LINE_AA)
 
                         # Transform predictions
                         eye_landmarks = np.concatenate([eye_landmarks,
@@ -382,15 +399,15 @@ class Runfile():
                             if look_flag and line_lengths:
                                 text_look = "Looking"
                                 print("\t LOOKING", fw, fh)
-                                cv.rectangle(
-                                bgr, tuple(np.round(face[:2]).astype(np.int32)),
-                                tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
-                                color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,)
+                                # cv.rectangle(
+                                # bgr, tuple(np.round(face[:2]).astype(np.int32)),
+                                # tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
+                                # color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,)
                                                                                         
-                                cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 0), -1)
-                                cv.putText(bgr, "LOOKING", org=(2644, 70),
-                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
-                                    color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
+                                # cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 0), -1)
+                                # cv.putText(bgr, "LOOKING", org=(2644, 70),
+                                #     fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
+                                #     color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
                                 cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 225), 5)
                                 # cv.rectangle(bgr, (2639, 75), (2641, 77), (0, 0, 225), 2) 
                                 # cv.rectangle(bgr, (fw - 48, fh - 700), (fw - 43, fh - 695), (0, 0, 225), 2)
@@ -469,5 +486,5 @@ class Runfile():
                     video_out_done.wait()
 
 if __name__ == "__main__":
-    run = Runfile(from_video = "/home/kayadev-gpu-2/Desktop/Input Videos/Video5.mp4", record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/SampleRecord5.avi")
-    run.__init__(from_video = "/home/kayadev-gpu-2/Desktop/Input Videos/Video5.mp4", record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/SampleRecord5.avi")
+    run = Runfile(record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/SampleRecordDemarcation.avi")
+    run.__init__(record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/SampleRecordDemarcation.avi")

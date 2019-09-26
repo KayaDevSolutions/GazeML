@@ -139,7 +139,7 @@ class FramesSource(BaseDataSource):
         eye = np.expand_dims(eye, -1 if self.data_format == 'NHWC' else 0)
         entry['eye'] = eye
         return entry
-
+        
     # Video version To be Updated
     def detect_faces(self, frame):
         """Detect all faces in a frame."""
@@ -160,8 +160,7 @@ class FramesSource(BaseDataSource):
                 w, h = r - l, b - t
             except AttributeError:  # Using OpenCV LBP detector on CPU
                 l, t, w, h = d
-            for face in faces:
-                print("\t NOTHING!")
+            
             faces.append((l, t, w, h))
         
         # Left Profile Faces
@@ -174,11 +173,25 @@ class FramesSource(BaseDataSource):
                 r *= 2
                 b *= 2
                 w, h = r - l, b - t
+                for face in faces:
+                    r_face = face[0] + face[2]
+                    b_face = face[1] + face[3]
+                    if(face[2]*face[3] > w*h):
+                        if(l > face[0] and t > face[1] and r_face > r and b_face > b):
+                            print("Box Inside Box!")
+                        else:
+                            faces.append((l, t, w, h))
+                    elif(face[2]*face[3] < w*h):
+                        if(l < face[0] and t < face[1] and r_face < r and b_face < b):
+                            print("Box Inside Box!")
+                        else:
+                            faces.append((l, t, w, h))
+                    else:
+                        faces.append((l, t, w, h))
+                    print("\t SOMETHING!")    
             except AttributeError:  # Using OpenCV LBP detector on CPU
                 l, t, w, h = d
-            for face in faces:
-                print("\t SOMETHING!")    
-            faces.append((l, t, w, h))
+                # faces.append((l, t, w, h))
 
         # # Right Profile Faces
         # detections = self.profile_face_cascade.detectMultiScale(cv.flip(frame['grey'], 1), scaleFactor=1.1, minNeighbors=5, minSize=(15, 15), maxSize=(250, 250))
@@ -190,13 +203,26 @@ class FramesSource(BaseDataSource):
         #         r *= 2
         #         b *= 2
         #         w, h = r - l, b - t
+        #         for face in faces:
+        #             r_face = face[0] + face[2]
+        #             b_face = face[1] + face[3]
+        #             if(face[2]*face[3] > w*h):
+        #                 if(l > face[0] and t > face[1] and r_face > r and b_face > b):
+        #                     print("Box Inside Box!")
+        #                 else:
+        #                     faces.append((l, t, w, h))
+        #             elif(face[2]*face[3] < w*h):
+        #                 if(l < face[0] and t < face[1] and r_face < r and b_face < b):
+        #                     print("Box Inside Box!")
+        #                 else:
+        #                     faces.append((l, t, w, h))
+        #             else:
+        #                 faces.append((l, t, w, h))
+        #             print("\t SOMETHING!")    
         #     except AttributeError:  # Using OpenCV LBP detector on CPU
         #         l, t, w, h = d
-        #     for face in faces:
-        #         print("\t SOMETHING!")    
-        #     faces.append((l, t, w, h))
 
-        # # Rotated Frontal Faces
+        # # Rotated Frontal Faces CW
         # rows, cols = (frame['grey']).shape[:2]
         # M = cv.getRotationMatrix2D((cols/2,rows/2), 30, 1) #30 degrees ccw rotation
         # rotatedImg = cv.warpAffine(frame['grey'], M, (cols,rows))
@@ -209,13 +235,26 @@ class FramesSource(BaseDataSource):
         #         r *= 2
         #         b *= 2
         #         w, h = r - l, b - t
+        #         for face in faces:
+        #             r_face = face[0] + face[2]
+        #             b_face = face[1] + face[3]
+        #             if(face[2]*face[3] > w*h):
+        #                 if(l > face[0] and t > face[1] and r_face > r and b_face > b):
+        #                     print("Box Inside Box!")
+        #                 else:
+        #                     faces.append((l, t, w, h))
+        #             elif(face[2]*face[3] < w*h):
+        #                 if(l < face[0] and t < face[1] and r_face < r and b_face < b):
+        #                     print("Box Inside Box!")
+        #                 else:
+        #                     faces.append((l, t, w, h))
+        #             else:
+        #                 faces.append((l, t, w, h))
+        #             print("\t SOMETHING!")    
         #     except AttributeError:  # Using OpenCV LBP detector on CPU
         #         l, t, w, h = d
-        #     for face in faces:
-        #         print("\t NOTHING!")
-        #     faces.append((l, t, w, h))
 
-        # # Rotated Frontal Faces
+        # # Rotated Frontal Faces ACW
         # rows, cols = (frame['grey']).shape[:2]
         # M = cv.getRotationMatrix2D((cols/2,rows/2), -30, 1) #30 degrees ccw rotation
         # rotatedImg = cv.warpAffine(frame['grey'], M, (cols,rows))
@@ -228,11 +267,24 @@ class FramesSource(BaseDataSource):
         #         r *= 2
         #         b *= 2
         #         w, h = r - l, b - t
+        #         for face in faces:
+        #             r_face = face[0] + face[2]
+        #             b_face = face[1] + face[3]
+        #             if(face[2]*face[3] > w*h):
+        #                 if(l > face[0] and t > face[1] and r_face > r and b_face > b):
+        #                     print("Box Inside Box!")
+        #                 else:
+        #                     faces.append((l, t, w, h))
+        #             elif(face[2]*face[3] < w*h):
+        #                 if(l < face[0] and t < face[1] and r_face < r and b_face < b):
+        #                     print("Box Inside Box!")
+        #                 else:
+        #                     faces.append((l, t, w, h))
+        #             else:
+        #                 faces.append((l, t, w, h))
+        #             print("\t SOMETHING!")    
         #     except AttributeError:  # Using OpenCV LBP detector on CPU
         #         l, t, w, h = d
-        #     for face in faces:
-        #         print("\t NOTHING!")
-        #     faces.append((l, t, w, h))
         
 
         faces.sort(key=lambda bbox: bbox[0])
@@ -240,6 +292,7 @@ class FramesSource(BaseDataSource):
         
         frame['last_face_detect_index'] = frame['frame_index']
 
+    
     '''
     
     # Video version
@@ -266,7 +319,6 @@ class FramesSource(BaseDataSource):
         frame['faces'] = faces
         
         frame['last_face_detect_index'] = frame['frame_index']
-    
 
     # Webcam Version
     def detect_faces(self, frame):
