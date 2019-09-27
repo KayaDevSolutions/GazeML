@@ -7,6 +7,7 @@ from sqlalchemy.ext.automap import automap_base
 import numpy as np
 import base64
 import cv2
+from gazedb import GazeDB
 
 class OperationDatabase():
     engine = db.create_engine('postgresql://postgres:password@localhost:5432/TitanLog')
@@ -19,7 +20,7 @@ class OperationDatabase():
             print("Exception in initiating the database :",e)
 
     def selectquery(self):
-        table = self.connection.execute(f"""SELECT face, embedding_id, start_time, (end_time - start_time) as duration, cam_id FROM datalog WHERE (end_time - start_time) > '00:00:01'::time;""")
+        table = self.connection.execute(f"""SELECT encode(face, 'escape'), embedding_id, start_time, (end_time - start_time) as duration, cam_id FROM datalog WHERE (end_time - start_time) > '00:00:01'::time;""")
         dfcount = 0
         for row in table:
             row = list(row)
@@ -47,3 +48,6 @@ class OperationDatabase():
 if __name__ == "__main__":
     OpData = OperationDatabase()
     OpData.selectquery()
+    # report = GazeDB()
+    # reportdb = report.getreport()
+    # print(reportdb)

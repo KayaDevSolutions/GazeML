@@ -11,6 +11,7 @@ import sqlalchemy as db
 import psycopg2
 from datetime import datetime, timedelta
 import base64
+import pandas as pd
 
 class GazeDB():
     engine = db.create_engine('postgresql://postgres:password@localhost:5432/TitanLog')
@@ -27,6 +28,7 @@ class GazeDB():
             self.BreakValue = -300
             self.imgnumber = 0
             self.connection = self.engine.connect()
+            self.Face = []
             print("DB Instance created")
         except Exception as e:
             print("Exception in initiating database ", e)
@@ -96,7 +98,10 @@ class GazeDB():
         # print("\t Length of cropped faces: ", croppedfaces[0].shape,"\t Type: ", type(croppedfaces[0]),"\n Cropped face: ", croppedfaces[0])
 
         for face in croppedfaces:
-            _, encoded_image = cv2.imencode('.jpg', face)
+            face = face.copy(order='C')
+            encoded_image = base64.b64encode(face)
+            encoded_image = str(encoded_image)
+            encoded_image = encoded_image[1:len(encoded_image)]
             # print("Face for base64: ", face_base64)
             frame_embedding = self.GetEmbedding(face)
             # print("Frame_Embedding: ", frame_embedding)
@@ -110,7 +115,9 @@ class GazeDB():
                     self.EndTimer.append(lookingtime)
                     self.StartTimer.append(lookingtime)
                     self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
-                                                ('{len(self.EmbeddingArray)}','{encoded_image}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                                                ('{len(self.EmbeddingArray)}',{encoded_image} , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                    # f"""INSERT INTO datalog(embedding_id, face, start_time, end_time, cam_id) VALUES ('{0}',{self.final_str} , '15:34:55.618076', '15:44:05.791561', '1')"""
+                    self.Face.append(encoded_image)
                     # print("\t Adding to the database")
                 except Exception as e:
                     print("Exception in adding to db ", e)
@@ -172,3 +179,19 @@ class GazeDB():
             print("\t Elasticity values: ", self.BreakPoint)
         
             return
+        
+    # def getreport(self):
+    #     tempnumber = 0
+    #     lengtharray = []
+    #     camidarray = []
+    #     for i in range (len(self.EmbeddingArray)):
+    #         lengtharray.append(tempnumber)
+    #         camidarray.append(1)
+    #         tempnumber += 1
+    #     df = pd.DataFrame(list(zip(lengtharray, self.Face, self.EmbeddingArray, self.StartTimer, self.EndTimer)), 
+    #         columns =['embedding_id', 'face', 'embedding', 'start_time', 'end_time', 'cam_id'])
+    #     for i in range(len(df)):
+    #         df['duration'][i] = str(df['end_time'][i] - df['start_time'][i]).split(':')[2]
+
+    #     return df
+

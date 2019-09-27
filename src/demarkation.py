@@ -264,6 +264,8 @@ class Runfile():
 
                             # print("Frame: {}, Face: {}".format(np.round(np.add(face[:2], face[2:])), bgr.shape[0]))
                             if(np.round(face[:2][0]) > 540):
+                                bgr = cv.line(bgr, (540, 100), (540, 600), (255, 255, 255), 3) 
+
                                 cv.rectangle(
                                     bgr, tuple(np.round(face[:2]).astype(np.int32)),
                                     tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
@@ -274,6 +276,7 @@ class Runfile():
                                     color=(0, 0, 255), thickness=3, lineType=cv.LINE_AA)
                                 
                             else:
+                                bgr = cv.line(bgr, (540, 100), (540, 600), (255, 255, 255), 3)
                                 cv.rectangle(
                                     bgr, tuple(np.round(face[:2]).astype(np.int32)),
                                     tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),

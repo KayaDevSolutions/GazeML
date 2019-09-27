@@ -24,7 +24,7 @@ class OperationDatabase():
             
     def selectquery(self):
 
-        table = self.connection.execute(f"""SELECT face, embedding_id, start_time, (end_time - start_time) as duration, cam_id FROM datalog WHERE (end_time - start_time) > '00:00:01'::time ORDER BY start_time;""")
+        table = self.connection.execute(f"""SELECT encode(face, 'escape'), embedding_id, start_time, (end_time - start_time) as duration, cam_id FROM datalog WHERE (end_time - start_time) > '00:00:01'::time ORDER BY start_time;""")
         dfcount = 0    
         for row in table:
             row = list(row)

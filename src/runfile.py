@@ -244,8 +244,8 @@ class Runfile():
                             # print("eye_image_annotated", eye_image_annotated)
                             # print("BGR: ", bgr)
                             # print("v0: {}, v1: {}, v2: {}, u0: {}, u1: {}".format(v0, v1, v2, u0, u1))
-                            # bgr[v0:v1, u0:u1] = eye_image_raw
-                            # bgr[v1:v2, u0:u1] = eye_image_annotated
+                            bgr[v0:v1, u0:u1] = eye_image_raw
+                            bgr[v1:v2, u0:u1] = eye_image_annotated
                         except Exception as e:
                             print("\t Exception on matching numpy shape. ", e)
                             pass
@@ -386,21 +386,21 @@ class Runfile():
                                 bgr, tuple(np.round(face[:2]).astype(np.int32)),
                                 tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
                                 color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,)
-                                                                                        
-                                cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 0), -1)
-                                cv.putText(bgr, "LOOKING", org=(2644, 70),
-                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
+                                print("Shape of BGR: ", bgr.shape)                                 
+                                cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 0), -1)
+                                cv.putText(bgr, "LOOKING", org=(1060, 40),
+                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
                                     color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
-                                cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 225), 5)
-                                # cv.rectangle(bgr, (2639, 75), (2641, 77), (0, 0, 225), 2) 
+                                cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 225), 3)
+                                # cv.rectangle(bgr, (1058, 38), (2641, 77), (0, 0, 225), 2) 
                                 # cv.rectangle(bgr, (fw - 48, fh - 700), (fw - 43, fh - 695), (0, 0, 225), 2)
-                                # rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
+                                rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
                                 # database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'])
                             
                             else:
                                 text_look = ""
                                 print("\t Not Looking")
-                                # rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
+                                rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
                                 # database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'])
 
                             for face in frame['faces']:
@@ -469,5 +469,7 @@ class Runfile():
                     video_out_done.wait()
 
 if __name__ == "__main__":
-    run = Runfile(from_video = "/home/kayadev-gpu-2/Desktop/Input Videos/Video5.mp4", record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/SampleRecord5.avi")
-    run.__init__(from_video = "/home/kayadev-gpu-2/Desktop/Input Videos/Video5.mp4", record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/SampleRecord5.avi")
+    # run = Runfile(from_video = "/home/kayadev-gpu-2/Desktop/TCenter.mp4", record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/Trial/SampleRecord.avi")
+    # run.__init__(from_video = "/home/kayadev-gpu-2/Desktop/TCenter.mp4", record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/Trail/SampleRecord.avi")
+    run = Runfile(record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/Trial/SampleRecordWebcam.avi")
+    run.__init__(record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/Trial/SampleRecordWebcam.avi")

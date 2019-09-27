@@ -139,7 +139,8 @@ class FramesSource(BaseDataSource):
         eye = np.expand_dims(eye, -1 if self.data_format == 'NHWC' else 0)
         entry['eye'] = eye
         return entry
-        
+
+    '''
     # Video version To be Updated
     def detect_faces(self, frame):
         """Detect all faces in a frame."""
@@ -293,7 +294,7 @@ class FramesSource(BaseDataSource):
         frame['last_face_detect_index'] = frame['frame_index']
 
     
-    '''
+    
     
     # Video version
     def detect_faces(self, frame):
@@ -319,7 +320,7 @@ class FramesSource(BaseDataSource):
         frame['faces'] = faces
         
         frame['last_face_detect_index'] = frame['frame_index']
-
+    '''
     # Webcam Version
     def detect_faces(self, frame):
         """Detect all faces in a frame."""
@@ -357,7 +358,7 @@ class FramesSource(BaseDataSource):
             frame['faces'] = previous_frame['faces']
             frame['last_face_detect_index'] = previous_frame['last_face_detect_index']
     
-    '''
+    
     
     def detect_landmarks(self, frame):
         """Detect 5-point facial landmarks for faces in frame."""
