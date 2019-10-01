@@ -13,13 +13,12 @@ class Video(FramesSource):
     def __init__(self, video_path, **kwargs):
         """Create queues and threads to read and preprocess data."""
         self._short_name = 'Video'
-        path = "/home/kayadev-gpu-2/Downloads/SampleVideo2.mp4"
         assert os.path.isfile(video_path)
         self._video_path = video_path
         self._capture = cv.VideoCapture(self._video_path)
 
         # Call parent class constructor
-        super().__init__(staging=False, **kwargs)
+        super().__init__(staging=False, typeofinput = "Video", **kwargs)
 
     def frame_generator(self):
         """Read frame from webcam."""

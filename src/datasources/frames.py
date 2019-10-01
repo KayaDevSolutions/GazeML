@@ -20,13 +20,14 @@ from datasources import haar_cascade
 class FramesSource(BaseDataSource):
     """Preprocessing of stream of frames."""
 
-    def __init__(self,
+    def __init__(self, typeofinput,
                  tensorflow_session: tf.Session,
                  batch_size: int,
                  eye_image_shape: Tuple[int, int],
                  staging: bool=False,
                  **kwargs):
         """Create queues and threads to read and preprocess data."""
+        self.typeofinput = typeofinput
         self._eye_image_shape = eye_image_shape
         self._proc_mutex = threading.Lock()
         self._read_mutex = threading.Lock()
@@ -111,7 +112,10 @@ class FramesSource(BaseDataSource):
                         self._indices = self._indices[-frames_to_keep:]
 
                 # Eye image segmentation pipeline
-                self.detect_faces(frame)
+                if(self.typeofinput == 'Webcam'):
+                    self.detect_faces_webcam(frame)
+                else:
+                    self.detect_faces_video(frame)
                 self.detect_landmarks(frame)
                 self.calculate_smoothed_landmarks(frame)
                 self.segment_eyes(frame)
@@ -140,9 +144,9 @@ class FramesSource(BaseDataSource):
         entry['eye'] = eye
         return entry
 
-    '''
+    
     # Video version To be Updated
-    def detect_faces(self, frame):
+    def detect_faces_video(self, frame):
         """Detect all faces in a frame."""
         frame_index = frame['frame_index']
         previous_index = self._indices[self._indices.index(frame_index) - 1]
@@ -294,7 +298,7 @@ class FramesSource(BaseDataSource):
         frame['last_face_detect_index'] = frame['frame_index']
 
     
-    
+    '''
     
     # Video version
     def detect_faces(self, frame):
@@ -320,9 +324,10 @@ class FramesSource(BaseDataSource):
         frame['faces'] = faces
         
         frame['last_face_detect_index'] = frame['frame_index']
+    
     '''
     # Webcam Version
-    def detect_faces(self, frame):
+    def detect_faces_webcam(self, frame):
         """Detect all faces in a frame."""
         frame_index = frame['frame_index']
         previous_index = self._indices[self._indices.index(frame_index) - 1]
@@ -357,7 +362,6 @@ class FramesSource(BaseDataSource):
         else:
             frame['faces'] = previous_frame['faces']
             frame['last_face_detect_index'] = previous_frame['last_face_detect_index']
-    
     
     
     def detect_landmarks(self, frame):

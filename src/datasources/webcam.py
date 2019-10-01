@@ -18,7 +18,7 @@ class Webcam(FramesSource):
         self._capture.set(cv.CAP_PROP_FPS, fps)
 
         # Call parent class constructor
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, typeofinput = 'Webcam')
 
     def frame_generator(self):
         """Read frame from webcam."""

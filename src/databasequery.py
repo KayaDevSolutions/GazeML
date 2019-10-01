@@ -22,32 +22,37 @@ class OperationDatabase():
         except Exception as e:
             print("Exception in initiating the database :",e)
             
-    def selectquery(self):
+    def selectquery(self, filename):
 
-        table = self.connection.execute(f"""SELECT encode(face, 'escape'), embedding_id, start_time, (end_time - start_time) as duration, cam_id FROM datalog WHERE (end_time - start_time) > '00:00:01'::time ORDER BY start_time;""")
+        table = self.connection.execute(f"""SELECT encode(face, 'escape'), embedding_id, start_time, (end_time - start_time) as duration, cam_id FROM datalog WHERE (end_time - start_time) > '00:00:01'::time AND cam_id = '{filename}' ORDER BY start_time;""")
         dfcount = 0    
         for row in table:
             row = list(row)
             self.Data.loc[dfcount] = row
             dfcount += 1  
 
+        for i in range(len(self.Data['face'])):
+            print("\t Type Before: ", type(self.Data['face'][i]))
+            self.Data['face'][i] = self.Data['face'][i].strip('\n')
+            # self.Data['face'][i] = np.fromstring(strself.Data['face'][i])
+            print("\t Type After: ", type(self.Data['face'][i]))
 
-
-        for i in range(len(self.Data)):
-            self.Data['face'][i] = np.asarray(self.Data['face'][i])
-            self.Data['face'][i] = base64.b64encode(self.Data['face'][i])
-            # print(self.Data['face'][i])
+        #     self.Data['face'][i] = np.asarray(self.Data['face'][i])
+        #     self.Data['face'][i] = base64.b64encode(self.Data['face'][i])
+        #     self.Data['face'][i] = self.Data['face'][i][2:len(self.Data['face'][i])]
+        
+        
 
         for i in range(len(self.Data)):
             self.Data['duration'][i] = str(self.Data['duration'][i]).split(':')[2][:5]
 
         for i in range(len(self.Data)):
             self.Data['start_time'][i] = str(self.Data['start_time'][i]).split(':')[2][:5]
-        # print(type(self.Data['face'][0]))
+        print(self.Data['face'][0])
 
 
 
-
+        print(self.Data)
         # print(type(self.Data['face'][0]))
         
         # cv2.imshow("img",self.Data['face'][0])
@@ -64,5 +69,5 @@ class OperationDatabase():
 
         return(self.Data)
 
-OpData = OperationDatabase()
-OpData.selectquery()
+# OpData = OperationDatabase()
+# OpData.selectquery()

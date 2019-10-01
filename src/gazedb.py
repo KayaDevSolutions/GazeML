@@ -90,7 +90,7 @@ class GazeDB():
             euclidean_distance = np.sqrt(euclidean_distance)
             return euclidean_distance
 
-    def MarkingProcess(self, img, bboxs, lookingflag, frameindex):
+    def MarkingProcess(self, img, bboxs, lookingflag, frameindex, cam_id):
         inthelist = False
         croppedfaces = self.FaceAlign(img, bboxs)
         lookingtime = frameindex / 30
@@ -98,10 +98,10 @@ class GazeDB():
         # print("\t Length of cropped faces: ", croppedfaces[0].shape,"\t Type: ", type(croppedfaces[0]),"\n Cropped face: ", croppedfaces[0])
 
         for face in croppedfaces:
-            face = face.copy(order='C')
-            encoded_image = base64.b64encode(face)
-            encoded_image = str(encoded_image)
-            encoded_image = encoded_image[1:len(encoded_image)]
+            # face = face.copy(order='C')
+            # encoded_image = base64.b64encode(face)
+            # encoded_image = str(encoded_image)
+            # encoded_image = encoded_image[1:len(encoded_image)]
             # print("Face for base64: ", face_base64)
             frame_embedding = self.GetEmbedding(face)
             # print("Frame_Embedding: ", frame_embedding)
@@ -115,9 +115,9 @@ class GazeDB():
                     self.EndTimer.append(lookingtime)
                     self.StartTimer.append(lookingtime)
                     self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
-                                                ('{len(self.EmbeddingArray)}',{encoded_image} , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                                                ('{len(self.EmbeddingArray)}', {face}, '{frame_embedding}', '{lookingtime}', '{lookingtime}', '{cam_id}')""")
                     # f"""INSERT INTO datalog(embedding_id, face, start_time, end_time, cam_id) VALUES ('{0}',{self.final_str} , '15:34:55.618076', '15:44:05.791561', '1')"""
-                    self.Face.append(encoded_image)
+                    self.Face.append(face)
                     # print("\t Adding to the database")
                 except Exception as e:
                     print("Exception in adding to db ", e)
@@ -135,7 +135,7 @@ class GazeDB():
                         self.EndTimer[i] = lookingtime
                         if(self.BreakPoint[i] < self.BreakValue):
                             self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
-                                                ('{len(self.EmbeddingArray)}','{encoded_image}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                                                ('{len(self.EmbeddingArray)}','{face}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '{cam_id}')""")
                             self.BreakPoint[i] = 0
                         else:
                             self.connection.execute(f"""UPDATE datalog SET end_time = '{lookingtime}' WHERE embedding_id = {len(self.EmbeddingArray)}""")
@@ -150,7 +150,7 @@ class GazeDB():
                             self.EndTimer.append(lookingtime)
                             self.StartTimer.append(lookingtime)
                             self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
-                                                ('{len(self.EmbeddingArray)}','{encoded_image}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                                                ('{len(self.EmbeddingArray)}','{face}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '{cam_id}')""")
                             # print("\t Adding to the database")
                         except Exception as e:
                             print("Exception in adding to db ", e)
@@ -165,7 +165,7 @@ class GazeDB():
                             self.EndTimer[i] = lookingtime
                             if(self.BreakPoint[i] < self.BreakValue):
                                 self.connection.execute(f"""INSERT INTO datalog(embedding_id, face, embedding, start_time, end_time, cam_id) VALUES\
-                                                    ('{len(self.EmbeddingArray)}','{encoded_image}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '1')""")
+                                                    ('{len(self.EmbeddingArray)}','{face}' , '{frame_embedding}', '{lookingtime}', '{lookingtime}', '{cam_id}')""")
                                 self.BreakPoint[i] = 0
                             else:
                                 self.connection.execute(f"""UPDATE datalog SET end_time = '{lookingtime}' WHERE embedding_id = {len(self.EmbeddingArray)}""")

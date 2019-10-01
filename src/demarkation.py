@@ -145,6 +145,7 @@ class Runfile():
             inferred_stuff_queue = queue.Queue()
 
             def _visualize_output():
+                restrictedflag = False
                 last_frame_index = 0
                 last_frame_time = time.time()
                 fps_history = []
@@ -263,28 +264,33 @@ class Runfile():
                             # tuple(np.round(np.add(face[:2], face[2:])
 
                             # print("Frame: {}, Face: {}".format(np.round(np.add(face[:2], face[2:])), bgr.shape[0]))
-                            if(np.round(face[:2][0]) > 540):
-                                bgr = cv.line(bgr, (540, 100), (540, 600), (255, 255, 255), 3) 
+                            bgr = cv.line(bgr, (650, 100), (650, 600), (255, 255, 255), 3)
+                            if(np.round(face[:2][0]) < 650):
 
                                 cv.rectangle(
                                     bgr, tuple(np.round(face[:2]).astype(np.int32)),
                                     tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
                                     color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,
                                 )
-                                cv.putText(bgr, "RESTRICTED", org=(50, 10),
-                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
-                                    color=(0, 0, 255), thickness=3, lineType=cv.LINE_AA)
+                                restrictedflag = True
                                 
                             else:
-                                bgr = cv.line(bgr, (540, 100), (540, 600), (255, 255, 255), 3)
                                 cv.rectangle(
                                     bgr, tuple(np.round(face[:2]).astype(np.int32)),
                                     tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
                                     color=(0, 255, 0), thickness=2, lineType=cv.LINE_AA,
                                 )
-                                cv.putText(bgr, "ALLOWED", org=(50, 10),
-                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
-                                    color=(0, 255, 0), thickness=3, lineType=cv.LINE_AA)
+                                restrictedflag = False
+
+                            if restrictedflag:
+                                cv.putText(bgr, "RESTRICTED", org=(50, 30),
+                                fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
+                                color=(0, 0, 255), thickness=3, lineType=cv.LINE_AA)
+                                restrictedflag = False
+                            else:
+                                cv.putText(bgr, "ALLOWED", org=(50, 30),
+                                fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
+                                color=(0, 255, 0), thickness=3, lineType=cv.LINE_AA)
 
                         # Transform predictions
                         eye_landmarks = np.concatenate([eye_landmarks,
@@ -400,7 +406,7 @@ class Runfile():
                                     look_flag = True
                                                             
                             if look_flag and line_lengths:
-                                text_look = "Looking"
+                                text_look = ""
                                 print("\t LOOKING", fw, fh)
                                 # cv.rectangle(
                                 # bgr, tuple(np.round(face[:2]).astype(np.int32)),
