@@ -29,8 +29,8 @@ class HaarFaceDetector:
     SOURCE: https://en.wikipedia.org/wiki/Haar-like_features
     """
 
-    def __init__(self, frontalFacePath = "/home/kayadev-gpu-2/gazeml_current/GazeML/haarcascade_frontalface_alt.xml", \
-                        profileFacePath = "/home/kayadev-gpu-2/gazeml_current/GazeML/haarcascade_profileface.xml"):
+    def __init__(self, frontalFacePath = "datasources/haarcascade_frontalface_alt.xml", \
+                        profileFacePath = "datasources/haarcascade_profileface.xml"):
         """Init the face detector object
         @param frontalFacePath path to the classifier config file
         @param profileFacePath path to the classifier config file
