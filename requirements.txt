@@ -1,0 +1,8 @@
+dlib
+coloredlogs
+opencv-python
+ujson
+keras
+sqlalchemy
+psycopg2-binary
+pandas

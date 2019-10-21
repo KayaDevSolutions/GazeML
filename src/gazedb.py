@@ -18,7 +18,7 @@ class GazeDB():
     def __init__(self):
         try:
             self.model = InceptionResNetV1()
-            self.model.load_weights('/home/kayadev-gpu-2/gazeml_current/GazeML/facenet_weights.h5')
+            self.model.load_weights('../facenet_weights.h5')
             self.graph = tf.get_default_graph()
             self.previousembedding = np.zeros((1,128))
             self.EmbeddingArray = []

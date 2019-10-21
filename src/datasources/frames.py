@@ -6,13 +6,12 @@ import shutil
 import threading
 import time
 from typing import Tuple
-import os
 from urllib.request import urlopen
 
 import cv2 as cv
 import numpy as np
 import tensorflow as tf
-
+import os
 from core import BaseDataSource
 from datasources import haar_cascade
 
@@ -44,12 +43,13 @@ class FramesSource(BaseDataSource):
         self._open = True
         # self.face_cascade = haar_cascade.HaarCascade("/home/kayadev-gpu-2/GazeML/haarcascade_frontalface_alt.xml", \
         #                                 "/home/kayadev-gpu-2/GazeML/haarcascade_profileface.xml")
-        self.frontal_face_cascade = cv.CascadeClassifier('haarcascade_frontalface_alt.xml')
+        self.frontal_face_cascade = cv.CascadeClassifier('src/haarcascade_frontalface_alt.xml')
 
-        self.profile_face_cascade = cv.CascadeClassifier('haarcascade_profileface.xml')
+        self.profile_face_cascade = cv.CascadeClassifier('src/haarcascade_profileface.xml')
 
-        modelFile = "res10_300x300_ssd_iter_140000_fp16.caffemodel"
-        configFile = "deploy.prototxt"
+        modelFile = "src/res10_300x300_ssd_iter_140000_fp16.caffemodel"
+        configFile = "src/deploy.prototxt"
+
         self.net = cv.dnn.readNetFromCaffe(configFile, modelFile)
         # Call parent class constructor
         super().__init__(tensorflow_session, batch_size=batch_size, num_threads=1,
