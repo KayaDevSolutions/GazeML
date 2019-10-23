@@ -560,7 +560,7 @@ def get_face_detector():
             dat_path = _get_dlib_data_file('mmod_human_face_detector.dat')
             _face_detector = dlib.cnn_face_detection_model_v1(dat_path)
         except:
-            xml_path = _get_opencv_xml('lbpcascade_frontalface_improved.xml')
+            xml_path = _get_opencv_xml('src/lbpcascade_frontalface_improved.xml')
             _face_detector = cv.CascadeClassifier(xml_path)
     return _face_detector
 
