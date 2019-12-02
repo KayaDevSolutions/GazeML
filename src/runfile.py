@@ -163,6 +163,8 @@ class Runfile():
                         next_frame_index = last_frame_index + 1
                         if next_frame_index in data_source._frames:
                             next_frame = data_source._frames[next_frame_index]
+
+                            # print("next_frame.......................", next_frame)
                             if 'faces' in next_frame and len(next_frame['faces']) == 0:
                                 if not args.headless:
                                     resized_img = cv.resize(next_frame['bgr'], (1280, 720))
@@ -191,9 +193,12 @@ class Runfile():
                         if frame_index not in data_source._frames:
                             continue
                         frame = data_source._frames[frame_index]
+                        # print("frame...................................", frame)
 
                         # Decide which landmarks are usable
                         heatmaps_amax = np.amax(output['heatmaps'][j, :].reshape(-1, 18), axis=0)
+
+                        # print("heatmaps_amax...............", heatmaps_amax)
                         can_use_eye = np.all(heatmaps_amax > 0.7)
                         can_use_eyelid = np.all(heatmaps_amax[0:8] > 0.75)
                         can_use_iris = np.all(heatmaps_amax[8:16] > 0.8)
@@ -314,8 +319,20 @@ class Runfile():
                             theta = -np.arcsin(np.clip((i_y0 - e_y0) / eyeball_radius, -1.0, 1.0))
                             phi = np.arcsin(np.clip((i_x0 - e_x0) / (eyeball_radius * -np.cos(theta)),
                                                     -1.0, 1.0))
+
+                            # co-ordinates x and y
+                            # x = phi * sin
+
+                            # x = theta * np.cos(phi)
+                            # y = theta * np.sin(phi)
+
+                            # print("X AND Y .............", x, y)
                             current_gaze = np.array([theta, phi])
+
+                            print("current_gaze..............................................", current_gaze)
                             gaze_history.append(current_gaze)
+                            
+                            # print("gaze_history.............data", gaze_history)
                             gaze_history_max_len = 10
                             if len(gaze_history) > gaze_history_max_len:
                                 gaze_history = gaze_history[-gaze_history_max_len:]
@@ -479,8 +496,12 @@ class Runfile():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Demonstration of landmarks localization.')
     parser.add_argument('--from_video', type=str, help='Use this video path instead of webcam', default="")
+
     parser.add_argument('--record_video', type=str, help='Output path of video of demonstration.', \
                         default='/home/kayadev-gpu-2/Desktop/Output Videos/Trial/SampleRecord.avi')
+
+    # parser.add_argument('--record_video', type=str, help='Output path of video of demonstration.', \
+    #                     default='src/output_image.avi')
     args = parser.parse_args()
     run = Runfile(from_video=args.from_video, record_video=args.record_video)
     run.__init__(from_video=args.from_video, record_video=args.record_video)

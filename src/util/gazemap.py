@@ -42,4 +42,6 @@ def from_gaze2d(gaze, output_size, scale=1.0):
     gazemap = cv.circle(gazemap, (ow_2, oh_2), r, color=1, thickness=-1)
     gazemaps.append(gazemap)
 
+    print("np.asarray(gazemaps).............", np.asarray(gazemaps))
+
     return np.asarray(gazemaps)
