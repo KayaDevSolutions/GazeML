@@ -375,46 +375,46 @@ class Runfile():
                             
                             print("\n\n\t\t Line Lengths: ", line_lengths)
                             # print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
-                            for line_length in line_lengths:
-                                if line_length < 50:
-                                    look_flag = True
+                            # for line_length in line_lengths:
+                            #     if line_length < 50:
+                            #         look_flag = True
                                                             
-                            if look_flag and line_lengths:
-                                text_look = "Looking"
-                                print("\t LOOKING", fw, fh)
-                                cv.rectangle(
-                                bgr, tuple(np.round(face[:2]).astype(np.int32)),
-                                tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
-                                color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,)
-                                if(from_video == ""):
-                                    cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 0), -1)
-                                    cv.putText(bgr, "LOOKING", org=(1060, 40),
-                                        fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
-                                        color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
-                                    cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 225), 3)
-                                else:
-                                    cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 0), -1)
-                                    cv.putText(bgr, "LOOKING", org=(2644, 70),
-                                        fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
-                                        color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
-                                    cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 225), 3)
+                            # if look_flag and line_lengths:
+                            #     text_look = "Looking"
+                            #     print("\t LOOKING", fw, fh)
+                                # cv.rectangle(
+                                # bgr, tuple(np.round(face[:2]).astype(np.int32)),
+                                # tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
+                                # color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,)
+                                # if(from_video == ""):
+                                #     cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 0), -1)
+                                #     cv.putText(bgr, "LOOKING", org=(1060, 40),
+                                #         fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
+                                #         color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
+                                #     cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 225), 3)
+                                # else:
+                                #     cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 0), -1)
+                                #     cv.putText(bgr, "LOOKING", org=(2644, 70),
+                                #         fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
+                                #         color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
+                                #     cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 225), 3)
                                 # cv.rectangle(bgr, (1058, 38), (2641, 77), (0, 0, 225), 2) 
                                 # cv.rectangle(bgr, (fw - 48, fh - 700), (fw - 43, fh - 695), (0, 0, 225), 2)
-                                rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
-                                if(from_video != ""):    
-                                    database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'], cam_id = filename)
+                            #     rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
+                            #     if(from_video != ""):    
+                            #         database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'], cam_id = filename)
                             
-                            else:
-                                text_look = ""
-                                print("\t Not Looking")
-                                rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
-                                if(from_video != ""):
-                                    database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'], cam_id = filename)
+                            # else:
+                            #     text_look = ""
+                            #     print("\t Not Looking")
+                            #     rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
+                            #     if(from_video != ""):
+                            #         database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'], cam_id = filename)
 
-                            for face in frame['faces']:
-                                cv.putText(bgr, text_look, (np.round(face[0] + 5).astype(np.int32), np.round(face[1] - 10).astype(np.int32)),
-                                        fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.8,
-                                        color=(0, 0, 255), thickness=1, lineType=cv.LINE_AA)     
+                            # for face in frame['faces']:
+                            #     cv.putText(bgr, text_look, (np.round(face[0] + 5).astype(np.int32), np.round(face[1] - 10).astype(np.int32)),
+                            #             fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.8,
+                            #             color=(0, 0, 255), thickness=1, lineType=cv.LINE_AA)     
                             
                             if not args.headless:
                                 resized_img = cv.resize(bgr, (1280, 720))
@@ -480,7 +480,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Demonstration of landmarks localization.')
     parser.add_argument('--from_video', type=str, help='Use this video path instead of webcam', default="")
     parser.add_argument('--record_video', type=str, help='Output path of video of demonstration.', \
-                        default='/home/kayadev-gpu-2/Desktop/Output Videos/Trial/SampleRecord.avi')
+                        default='SampleRecord.avi')
     args = parser.parse_args()
     run = Runfile(from_video=args.from_video, record_video=args.record_video)
     run.__init__(from_video=args.from_video, record_video=args.record_video)
