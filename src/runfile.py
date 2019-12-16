@@ -5,7 +5,6 @@ import os
 import queue
 import threading
 import time
-from gazedb import GazeDB
 import coloredlogs
 import cv2 as cv
 import numpy as np
@@ -20,7 +19,6 @@ class Runfile():
     def __init__(self, from_video = None, record_video = None):
         print("Filename: ", from_video.split("/")[len(from_video.split("/")) - 1])
         # Initialise the obj
-        database = GazeDB()
         # Set global log level
         parser = argparse.ArgumentParser(description='Demonstration of landmarks localization.')
         parser.add_argument('-v', type=str, help='logging level', default='info',
@@ -182,10 +180,10 @@ class Runfile():
 
                     line_lengths = []
                     look_flag = False
-
+                    gazing_point = ()
                     for j in range(batch_size):
 
-                        print("Batch Size, J: ", batch_size, j)
+                        # print("Batch Size, J: ", batch_size, j)
 
                         frame_index = output['frame_index'][j]
                         if frame_index not in data_source._frames:
@@ -319,8 +317,8 @@ class Runfile():
                             gaze_history_max_len = 10
                             if len(gaze_history) > gaze_history_max_len:
                                 gaze_history = gaze_history[-gaze_history_max_len:]
-                            bgr, line_length = util.gaze.draw_gaze(bgr, iris_centre, np.mean(gaze_history, axis=0),
-                                                length=120.0, thickness=1)
+                            bgr, line_length, gazing_point = util.gaze.draw_gaze(bgr, iris_centre, np.mean(gaze_history, axis=0),
+                                                length=500.0, thickness=1)
                             line_lengths.append(line_length)
                         else:
                             gaze_history.clear()
@@ -370,10 +368,13 @@ class Runfile():
                             cv.putText(bgr, fps_str, org=(fw - 111, fh - 21),
                                     fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.79,
                                     color=(255, 255, 255), thickness=1, lineType=cv.LINE_AA)
-
+                                    
+                            cv.putText(bgr, str(gazing_point), org=(111, 21),
+                                    fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.79,
+                                    color=(0, 0, 0), thickness=1, lineType=cv.LINE_AA)
                             # if j % 2 == 1:
                             
-                            print("\n\n\t\t Line Lengths: ", line_lengths)
+                            # print("\n\n\t\t Line Lengths: ", line_lengths)
                             # print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
                             # for line_length in line_lengths:
                             #     if line_length < 50:
@@ -394,7 +395,7 @@ class Runfile():
                                 #     cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 225), 3)
                                 # else:
                                 #     cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 0), -1)
-                                #     cv.putText(bgr, "LOOKING", org=(2644, 70),
+                                #   cd ..  cv.putText(bgr, "LOOKING", org=(2644, 70),
                                 #         fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
                                 #         color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
                                 #     cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 225), 3)
@@ -432,23 +433,23 @@ class Runfile():
                                 return
 
                             # Print timings
-                            if frame_index % 60 == 0:
-                                latency = _dtime('before_frame_read', 'after_visualization')
-                                processing = _dtime('after_frame_read', 'after_visualization')
-                                timing_string = ', '.join([
-                                    _dstr('read', 'before_frame_read', 'after_frame_read'),
-                                    _dstr('preproc', 'after_frame_read', 'after_preprocessing'),
-                                    'infer: %dms' % int(frame['time']['inference']),
-                                    'vis: %dms' % int(frame['time']['visualization']),
-                                    'proc: %dms' % processing,
-                                    'latency: %dms' % latency,
-                                ])
-                                print('%08d [%s] %s' % (frame_index, fps_str, timing_string))
+                            # if frame_index % 60 == 0:
+                            #     latency = _dtime('before_frame_read', 'after_visualization')
+                            #     processing = _dtime('after_frame_read', 'after_visualization')
+                            #     timing_string = ', '.join([
+                            #         _dstr('read', 'before_frame_read', 'after_frame_read'),
+                            #         _dstr('preproc', 'after_frame_read', 'after_preprocessing'),
+                            #         'infer: %dms' % int(frame['time']['inference']),
+                            #         'vis: %dms' % int(frame['time']['visualization']),
+                            #         'proc: %dms' % processing,
+                            #         'latency: %dms' % latency,
+                            #     ])
+                            #     print('%08d [%s] %s' % (frame_index, fps_str, timing_string))
                             
             visualize_thread = threading.Thread(target=_visualize_output, name='visualization')
             visualize_thread.daemon = True
             visualize_thread.start()
-
+            
             # Do inference forever
             infer = model.inference_generator()
             while True:
@@ -463,6 +464,7 @@ class Runfile():
                         frame['time']['inference'] = output['inference_time']
                 inferred_stuff_queue.put_nowait(output)
 
+                
                 if not visualize_thread.isAlive():
                     break
 

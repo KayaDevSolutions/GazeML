@@ -115,7 +115,7 @@ class FramesSource(BaseDataSource):
                 if(self.typeofinput == 'Webcam'):
                     self.detect_faces_webcam(frame)
                 else:
-                    self.detect_faces_webcam(frame)
+                    self.detect_faces_video(frame)
                 self.detect_landmarks(frame)
                 self.calculate_smoothed_landmarks(frame)
                 self.segment_eyes(frame)
