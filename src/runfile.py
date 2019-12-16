@@ -18,29 +18,21 @@ from keras import backend as K
 class Runfile():
     def __init__(self, from_video = None, record_video = None):
         print("Filename: ", from_video.split("/")[len(from_video.split("/")) - 1])
-        # Initialise the obj
-        # Set global log level
-        parser = argparse.ArgumentParser(description='Demonstration of landmarks localization.')
-        parser.add_argument('-v', type=str, help='logging level', default='info',
-                            choices=['debug', 'info', 'warning', 'error', 'critical'])
-        parser.add_argument('--from_video', type=str, help='Use this video path instead of webcam')
-        parser.add_argument('--record_video', type=str, help='Output path of video of demonstration.')
-        parser.add_argument('--fullscreen', action='store_true')
-        parser.add_argument('--headless', action='store_true')
 
-        parser.add_argument('--fps', type=int, default=60, help='Desired sampling rate of webcam')
-        parser.add_argument('--camera_id', type=int, default=0, help='ID of webcam to use')
-
-        args = parser.parse_args()
+        version = 'debug'  # choice of versions: ['debug', 'info', 'warning', 'error', 'critical']
         coloredlogs.install(
             datefmt='%d/%m %H:%M',
             fmt='%(asctime)s %(levelname)s %(message)s',
-            level=args.v.upper(),
+            level=version.upper(),
         )
+        fullscreen = False
+        fps = 60
+        camera_id = 0
         if(from_video == ""):
             filename = "Camera"
         else:
             filename = from_video.split("/")[len(from_video.split("/")) - 1]
+            
         # Check if GPU is available
         from tensorflow.python.client import device_lib
         session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
@@ -59,7 +51,6 @@ class Runfile():
             # Declare some parameters
             batch_size = 2
 
-            # Define webcam stream data source
             # Change data_format='NHWC' if not using CUDA
             if from_video:
                 assert os.path.isfile(from_video)
@@ -69,7 +60,7 @@ class Runfile():
                                     eye_image_shape=(108, 180))
             else:
                 data_source = Webcam(tensorflow_session=session, batch_size=batch_size,
-                                    camera_id=args.camera_id, fps=args.fps,
+                                    camera_id=camera_id, fps=fps,
                                     data_format='NCHW' if gpu_available else 'NHWC',
                                     eye_image_shape=(36, 60))
 
@@ -110,38 +101,6 @@ class Runfile():
                                 20, (1280, 720),
                             )
                 
-                def _record_frame():
-                    global video_out
-                    last_frame_time = None
-                    out_fps = 60
-                    out_frame_interval = 1.0 / out_fps
-                    while not video_out_should_stop:
-                        frame_index = video_out_queue.get()
-                        if frame_index is None:
-                            break
-                        # assert frame_index in data_source._frames
-                        frame = data_source._frames[frame_index]['bgr']
-                        h, w, _ = frame.shape
-                        if video_out is None:
-                            video_out = cv.VideoWriter(
-                                record_video, cv.VideoWriter_fourcc(*'XVID'),
-                                60, (w, h),
-                            )
-                        now_time = time.time()
-                        if last_frame_time is not None:
-                            time_diff = now_time - last_frame_time
-                            while time_diff > 0.0:
-                                # video_out.write(frame)
-                                time_diff -= out_frame_interval
-                        last_frame_time = now_time
-                    video_out.release()
-                    with video_out_done:
-                        video_out_done.notify_all()
-                
-                # record_thread = threading.Thread(target=_record_frame, name='record')
-                # record_thread.daemon = True
-                # record_thread.start()
-
             # Begin visualization thread
             inferred_stuff_queue = queue.Queue()
 
@@ -151,11 +110,12 @@ class Runfile():
                 fps_history = []
                 all_gaze_histories = []
 
-                if args.fullscreen:
+                if fullscreen:
                     cv.namedWindow('vis', cv.WND_PROP_FULLSCREEN)
                     cv.setWindowProperty('vis', cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
                 
-                with open('gazepoints.csv', 'w', newline='') as myfile:
+                with open('gazepoints.csv', 'a+', newline='') as myfile:
+                    wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
                     while True:
                         # If no output to visualize, show unannotated frame
                         if inferred_stuff_queue.empty():
@@ -163,11 +123,9 @@ class Runfile():
                             if next_frame_index in data_source._frames:
                                 next_frame = data_source._frames[next_frame_index]
                                 if 'faces' in next_frame and len(next_frame['faces']) == 0:
-                                    if not args.headless:
-                                        resized_img = cv.resize(next_frame['bgr'], (1280, 720))
-                                        cv.imshow('vis', resized_img)
-                                        video_recorder.write(resized_img)
-                                        # cv.imshow('vis', flipped_bgr)
+                                    resized_img = cv.resize(next_frame['bgr'], (1280, 720))
+                                    cv.imshow('vis', resized_img)
+                                    video_recorder.write(resized_img)
                                     if record_video:
                                         video_out_queue.put_nowait(next_frame_index)
                                     last_frame_index = next_frame_index
@@ -255,11 +213,6 @@ class Runfile():
                                             if 'smoothed_landmarks' in frame
                                             else frame['landmarks'])
                             for f, face in enumerate(frame['faces']):
-                                # for landmark in frame_landmarks[f][:-1]:
-                                #     cv.drawMarker(bgr, tuple(np.round(landmark).astype(np.int32)),
-                                #                   color=(0, 0, 255), markerType=cv.MARKER_STAR,
-                                #                   markerSize=2, thickness=1, line_type=cv.LINE_AA)
-
                                 cv.rectangle(
                                     bgr, tuple(np.round(face[:2]).astype(np.int32)),
                                     tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
@@ -282,33 +235,12 @@ class Runfile():
                             eyeball_radius = np.linalg.norm(eye_landmarks[18, :] -
                                                             eye_landmarks[17, :])
 
-                            
-
                             # Smooth and visualize gaze direction
                             num_total_eyes_in_frame = len(frame['eyes'])
                             if len(all_gaze_histories) != num_total_eyes_in_frame:
                                 all_gaze_histories = [list() for _ in range(num_total_eyes_in_frame)]
                             gaze_history = all_gaze_histories[eye_index]
                             if can_use_eye:
-                                # Visualize landmarks
-                                # cv.drawMarker(  # Eyeball centre
-                                #     bgr, tuple(np.round(eyeball_centre).astype(np.int32)),
-                                #     color=(0, 255, 0), markerType=cv.MARKER_CROSS, markerSize=4,
-                                #     thickness=1, line_type=cv.LINE_AA,
-                                # )
-                                # cv.circle(  # Eyeball outline
-                                #     bgr, tuple(np.round(eyeball_centre).astype(np.int32)),
-                                #     int(np.round(eyeball_radius)), color=(0, 255, 0),
-                                #     thickness=1, lineType=cv.LINE_AA,
-                                # )
-
-
-
-
-                                # Draw "gaze"
-                                # from models.elg import estimate_gaze_from_landmarks
-                                # current_gaze = estimate_gaze_from_landmarks(
-                                #     iris_landmarks, iris_centre, eyeball_centre, eyeball_radius)
                                 i_x0, i_y0 = iris_centre
                                 e_x0, e_y0 = eyeball_centre
                                 theta = -np.arcsin(np.clip((i_y0 - e_y0) / eyeball_radius, -1.0, 1.0))
@@ -321,27 +253,11 @@ class Runfile():
                                     gaze_history = gaze_history[-gaze_history_max_len:]
                                 bgr, line_length, gazing_point = util.gaze.draw_gaze(bgr, iris_centre, np.mean(gaze_history, axis=0),
                                                     length=500.0, thickness=1)
+                                wr.writerow(gazing_point)
                                 line_lengths.append(line_length)
                                 gaze_points.append(gazing_point)
                             else:
                                 gaze_history.clear()
-
-                            # if can_use_eyelid:
-                            #     cv.polylines(
-                            #         bgr, [np.round(eyelid_landmarks).astype(np.int32).reshape(-1, 1, 2)],
-                            #         isClosed=True, color=(255, 255, 0), thickness=1, lineType=cv.LINE_AA,
-                            #     )
-
-                            # if can_use_iris:
-                            #     cv.polylines(
-                            #         bgr, [np.round(iris_landmarks).astype(np.int32).reshape(-1, 1, 2)],
-                            #         isClosed=True, color=(0, 255, 255), thickness=1, lineType=cv.LINE_AA,
-                            #     )
-                            #     cv.drawMarker(
-                            #         bgr, tuple(np.round(iris_centre).astype(np.int32)),
-                            #         color=(0, 255, 255), markerType=cv.MARKER_CROSS, markerSize=4,
-                            #         thickness=1, line_type=cv.LINE_AA,
-                            #     )
 
                             dtime = 1e3*(time.time() - start_time)
                             if 'visualization' not in frame['time']:
@@ -374,56 +290,10 @@ class Runfile():
                                         
                                 cv.putText(bgr, str(gazing_point), org=(111, 21),
                                         fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.79,
-                                        color=(0, 0, 0), thickness=1, lineType=cv.LINE_AA)
-                                # if j % 2 == 1:
-                                
-                                # print("\n\n\t\t Line Lengths: ", line_lengths)
-                                # print("\n\n\t\t Face: ", (np.round(face[2] + 5).astype(np.int32), np.round(face[3] - 10).astype(np.int32)))
-                                # for line_length in line_lengths:
-                                #     if line_length < 50:
-                                #         look_flag = True
-                                                                
-                                # if look_flag and line_lengths:
-                                #     text_look = "Looking"
-                                #     print("\t LOOKING", fw, fh)
-                                    # cv.rectangle(
-                                    # bgr, tuple(np.round(face[:2]).astype(np.int32)),
-                                    # tuple(np.round(np.add(face[:2], face[2:])).astype(np.int32)),
-                                    # color=(0, 0, 255), thickness=2, lineType=cv.LINE_AA,)
-                                    # if(from_video == ""):
-                                    #     cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 0), -1)
-                                    #     cv.putText(bgr, "LOOKING", org=(1060, 40),
-                                    #         fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=1.2,
-                                    #         color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
-                                    #     cv.rectangle(bgr, (1055, 8), (1225, 48), (0, 0, 225), 3)
-                                    # else:
-                                    #     cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 0), -1)
-                                    #   cd ..  cv.putText(bgr, "LOOKING", org=(2644, 70),
-                                    #         fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=2,
-                                    #         color=(0, 0, 225), thickness=4, lineType=cv.LINE_AA)
-                                    #     cv.rectangle(bgr, (2633, 10), (2930, 85), (0, 0, 225), 3)
-                                    # cv.rectangle(bgr, (1058, 38), (2641, 77), (0, 0, 225), 2) 
-                                    # cv.rectangle(bgr, (fw - 48, fh - 700), (fw - 43, fh - 695), (0, 0, 225), 2)
-                                #     rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
-                                #     if(from_video != ""):    
-                                #         database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'], cam_id = filename)
-                                
-                                # else:
-                                #     text_look = ""
-                                #     print("\t Not Looking")
-                                #     rgb_image = cv.cvtColor(frame['bgr'], cv.COLOR_BGR2RGB)
-                                #     if(from_video != ""):
-                                #         database.MarkingProcess(img = rgb_image, bboxs = frame['faces'], lookingflag = look_flag, frameindex = frame['frame_index'], cam_id = filename)
-
-                                # for face in frame['faces']:
-                                #     cv.putText(bgr, text_look, (np.round(face[0] + 5).astype(np.int32), np.round(face[1] - 10).astype(np.int32)),
-                                #             fontFace=cv.FONT_HERSHEY_DUPLEX, fontScale=0.8,
-                                #             color=(0, 0, 255), thickness=1, lineType=cv.LINE_AA)     
-                                
-                                if not args.headless:
-                                    resized_img = cv.resize(bgr, (1280, 720))
-                                    cv.imshow('vis', resized_img)
-                                    video_recorder.write(resized_img)
+                                        color=(0, 0, 0), thickness=1, lineType=cv.LINE_AA)                                    
+                                resized_img = cv.resize(bgr, (1280, 720))
+                                cv.imshow('vis', resized_img)
+                                video_recorder.write(resized_img)
                                     # cv.imshow('vis', bgr)
                                 last_frame_index = frame_index
 
@@ -434,27 +304,7 @@ class Runfile():
                                 # Quit?
                                 if cv.waitKey(1) & 0xFF == ord('q'):
                                     return
-
-                        # with open('gazepoints.csv', 'w', newline='') as myfile:
-                        wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-                        
-                        for points in gaze_points :
-                            wr.writerow(points)
-                                # print("Points to be writen: ", points)
-
-                                # Print timings
-                                # if frame_index % 60 == 0:
-                                #     latency = _dtime('before_frame_read', 'after_visualization')
-                                #     processing = _dtime('after_frame_read', 'after_visualization')
-                                #     timing_string = ', '.join([
-                                #         _dstr('read', 'before_frame_read', 'after_frame_read'),
-                                #         _dstr('preproc', 'after_frame_read', 'after_preprocessing'),
-                                #         'infer: %dms' % int(frame['time']['inference']),
-                                #         'vis: %dms' % int(frame['time']['visualization']),
-                                #         'proc: %dms' % processing,
-                                #         'latency: %dms' % latency,
-                                #     ])
-                                #     print('%08d [%s] %s' % (frame_index, fps_str, timing_string))
+                    myfile.close()
                                 
             visualize_thread = threading.Thread(target=_visualize_output, name='visualization')
             visualize_thread.daemon = True
@@ -495,8 +345,3 @@ if __name__ == "__main__":
                         default='SampleRecord.avi')
     args = parser.parse_args()
     run = Runfile(from_video=args.from_video, record_video=args.record_video)
-    run.__init__(from_video=args.from_video, record_video=args.record_video)
-    # run = Runfile(from_video = "/home/kayadev-gpu-2/Desktop/SampleVideoCropped.mp4", record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/Trial/SampleRecord.avi")
-    # run.__init__(from_video = "/home/kayadev-gpu-2/Desktop/SampleVideoCropped.mp4", record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/Trail/SampleRecord.avi")
-    # run = Runfile(record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/Trial/SampleRecordWebcam.avi")
-    # run.__init__(record_video = "/home/kayadev-gpu-2/Desktop/Output Videos/Trial/SampleRecordWebcam.avi")
